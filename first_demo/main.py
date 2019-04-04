@@ -139,7 +139,7 @@ class Game:
 
             # super mario text
             largeText = pygame.font.Font('freesansbold.ttf', 115)
-            TextSurf, TextRect = self.text_objects("Super Mario", largeText)
+            TextSurf, TextRect = self.text_objects("Super cpt.Danko", largeText)
             TextRect.center = ((self.display_width / 2), (self.display_height / 3))
             self.screen.blit(TextSurf, TextRect)
 
