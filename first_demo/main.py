@@ -7,21 +7,21 @@ import random
 
 pygame.init()
 
-walkRight = [pygame.image.load('R1.png'), pygame.image.load('R2.png'), pygame.image.load('R3.png'),
-             pygame.image.load('R4.png'), pygame.image.load('R5.png'), pygame.image.load('R6.png'),
-             pygame.image.load('R7.png'), pygame.image.load('R8.png'), pygame.image.load('R9.png')]
-walkLeft = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.image.load('L3.png'),
-            pygame.image.load('L4.png'), pygame.image.load('L5.png'), pygame.image.load('L6.png'),
-            pygame.image.load('L7.png'), pygame.image.load('L8.png'), pygame.image.load('L9.png')]
+walkRight = [pygame.image.load('IMAGES/R1.png'), pygame.image.load('IMAGES/R2.png'), pygame.image.load('IMAGES/R3.png'),
+             pygame.image.load('IMAGES/R4.png'), pygame.image.load('IMAGES/R5.png'), pygame.image.load('IMAGES/R6.png'),
+             pygame.image.load('IMAGES/R7.png'), pygame.image.load('IMAGES/R8.png'), pygame.image.load('IMAGES/R9.png')]
+walkLeft = [pygame.image.load('IMAGES/L1.png'), pygame.image.load('IMAGES/L2.png'), pygame.image.load('IMAGES/L3.png'),
+            pygame.image.load('IMAGES/L4.png'), pygame.image.load('IMAGES/L5.png'), pygame.image.load('IMAGES/L6.png'),
+            pygame.image.load('IMAGES/L7.png'), pygame.image.load('IMAGES/L8.png'), pygame.image.load('IMAGES/L9.png')]
 
-enemyWalkRight = [pygame.image.load('R1E.png'), pygame.image.load('R2E.png'), pygame.image.load('R3E.png'),
-                 pygame.image.load('R4E.png'), pygame.image.load('R5E.png'), pygame.image.load('R6E.png'),
-                 pygame.image.load('R7E.png'), pygame.image.load('R8E.png'), pygame.image.load('R9E.png'),
-                 pygame.image.load('R10E.png'), pygame.image.load('R11E.png')]
-enemyWalkLeft = [pygame.image.load('L1E.png'), pygame.image.load('L2E.png'), pygame.image.load('L3E.png'),
-                pygame.image.load('L4E.png'), pygame.image.load('L5E.png'), pygame.image.load('L6E.png'),
-                pygame.image.load('L7E.png'), pygame.image.load('L8E.png'), pygame.image.load('L9E.png'),
-                pygame.image.load('L10E.png'), pygame.image.load('L11E.png')]
+enemyWalkRight = [pygame.image.load('IMAGES/R1E.png'), pygame.image.load('IMAGES/R2E.png'), pygame.image.load('IMAGES/R3E.png'),
+                 pygame.image.load('IMAGES/R4E.png'), pygame.image.load('IMAGES/R5E.png'), pygame.image.load('IMAGES/R6E.png'),
+                 pygame.image.load('IMAGES/R7E.png'), pygame.image.load('IMAGES/R8E.png'), pygame.image.load('IMAGES/R9E.png'),
+                 pygame.image.load('IMAGES/R10E.png'), pygame.image.load('IMAGES/R11E.png')]
+enemyWalkLeft = [pygame.image.load('IMAGES/L1E.png'), pygame.image.load('IMAGES/L2E.png'), pygame.image.load('IMAGES/L3E.png'),
+                pygame.image.load('IMAGES/L4E.png'), pygame.image.load('IMAGES/L5E.png'), pygame.image.load('IMAGES/L6E.png'),
+                pygame.image.load('IMAGES/L7E.png'), pygame.image.load('IMAGES/L8E.png'), pygame.image.load('IMAGES/L9E.png'),
+                pygame.image.load('IMAGES/L10E.png'), pygame.image.load('IMAGES/L11E.png')]
 
 RED = (200,0,0)
 GREEN = (0,200,0)
@@ -309,7 +309,7 @@ class Player:
         self.right = False
         self.walkCount = 0
         self.jumpCount = 10
-        self.character = pygame.image.load('standing.png')
+        self.character = pygame.image.load('IMAGES/standing.png')
 
     def draw(self, win):
         if self.walkCount + 1 >= 27:
