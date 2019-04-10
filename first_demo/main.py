@@ -38,6 +38,12 @@ FONT = pygame.font.Font(None, 32)
 class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
+        assert type(x) in {int, float}, 'X parameter has wrong type!'
+        assert type(y) in {int, float}, 'Y parameter has wrong type!'
+        assert type(w) in {int, float}, 'W parameter has wrong type!'
+        assert type(h) in {int, float}, 'H parameter has wrong type!'
+        assert type(text) == str, 'Text parameter has wron type!'
+
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
         self.text = text
@@ -59,6 +65,7 @@ class InputBox:
             if self.active:
                 if event.key == pygame.K_RETURN:
                     self.help_text = self.text
+                    assert self.text != '', 'Text of input box is empty!'
                     self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -71,7 +78,10 @@ class InputBox:
 
     def update(self, x, y):
         # Resize the box if the text is too long.
+        assert type(x) in {float, int}, 'X parameter has wrong type!'
+        assert type(y) in {float, int}, 'Y parameter has wrong type!'
         width = max(200, self.txt_surface.get_width() + 10)
+        assert width >= 200, 'Width of input box is smaller than expected'
         self.rect.w = width
         self.rect.x = x
         self.rect.y = y
@@ -92,6 +102,12 @@ class Game:
         self.show_warning_empty_username = False
 
     def text_objects(self, text, font, color = BLACK):
+        assert type(text) == str, 'Text parameter should be the str type!'
+        assert type(font) == pygame.font.Font, 'Font parameter has wrong type!'
+        assert type(color) == tuple, 'Color should be the tuple type!'
+        for c in color:
+            assert type(c) in {int, float}, 'Wrong color type!'
+            assert 0 <= c <= 255, 'Color parameter out of range!'
         textSurface = font.render(text, True, color)
         return textSurface, textSurface.get_rect()
 
@@ -100,6 +116,23 @@ class Game:
         quit()
 
     def button(self, msg,x,y,w,h,ic,ac,action=None):
+        assert type(msg) == str, 'msg should be the str type!'
+        assert type(x) in {int, float} , 'x position should be the int type'
+        assert type(y) in {int, float}, 'y position should be the int type'
+        assert type(w) in {int, float}, 'width parameter should be the int type'
+        assert type(h) in {int, float}, 'height parameter should be the int type'
+        assert type(ic) == tuple, 'inactive color parameter should be the tuple type'
+        assert type(ac) == tuple, 'active color parameter should be the tuple type'
+
+        for color in ic, ac:
+            for c in color:
+                assert type(c) in {int, float}, 'Wrong color type!'
+                assert 0 <= c <= 255, 'Color parameter out of range!'
+
+        display_width, display_height = pygame.display.get_surface().get_size()
+        assert x <= display_width - w/2, 'Button is partly out of screen! Change coords.'
+        assert y <= display_height - h / 2, 'Button is partly out of screen! Change coords.'
+
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
         # print(click)
@@ -150,6 +183,7 @@ class Game:
             self.screen.blit(TextSurf, TextRect)
 
             if self.show_warning_empty_username:
+                assert self.username == '', 'Username should be empty!'
                 smallText = pygame.font.Font('freesansbold.ttf', 20)
                 TextSurf, TextRect = self.text_objects("You forgot to enter your name!!!", smallText, RED)
                 TextRect.center = ((self.display_width / 2 - 60), (self.display_height / 2) + 50)
@@ -168,7 +202,7 @@ class Game:
 
         if self.username:
             gameExit = False
-
+            assert self.username != '', 'Username is empty!'
             while not gameExit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -234,6 +268,8 @@ class Game:
                 # clock.tick(60) # na toto nesahat, nedokoncene
         else:
             self.show_warning_empty_username = True
+            assert self.username == '', 'Username should be empty!'
+
 
     # def redrawGameWindow():
     #     self.screen.blit(levelbg, (0, 0))
