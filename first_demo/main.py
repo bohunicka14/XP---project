@@ -23,12 +23,12 @@ enemyWalkLeft = [pygame.image.load('IMAGES/L1E.png'), pygame.image.load('IMAGES/
                 pygame.image.load('IMAGES/L7E.png'), pygame.image.load('IMAGES/L8E.png'), pygame.image.load('IMAGES/L9E.png'),
                 pygame.image.load('IMAGES/L10E.png'), pygame.image.load('IMAGES/L11E.png')]
 
-RED = (200,0,0)
-GREEN = (0,200,0)
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-BRIGHT_RED = (255,0,0)
-BRIGHT_GREEN = (0,255,0)
+RED = (200, 0, 0)
+GREEN = (0, 200, 0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BRIGHT_RED = (255, 0, 0)
+BRIGHT_GREEN = (0, 255, 0)
 
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
@@ -97,7 +97,7 @@ class Game:
     def __init__(self):
         self.display_width = 1280
         self.display_height = 720
-        self.screen = pygame.display.set_mode((self.display_width, self.display_height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+        self.screen = pygame.display.set_mode((self.display_width, self.display_height), HWSURFACE | DOUBLEBUF)
         self.username = ''
         self.show_warning_empty_username = False
 
@@ -160,9 +160,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-                elif event.type == VIDEORESIZE:
-                    self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
-                    self.display_width, self.display_height = pygame.display.get_surface().get_size()
+                # elif event.type == VIDEORESIZE:
+                #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
+                #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
 
 
             self.screen.fill(WHITE)
@@ -208,11 +208,11 @@ class Game:
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         quit()
-                    elif event.type == VIDEORESIZE:
-                        self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
-                        self.display_width, self.display_height = pygame.display.get_surface().get_size()
-                        levelbg.rescale(self.display_height, self.display_width)
-                        self.screen.blit(pygame.transform.scale(levelbg.lvl_bg_img, (levelbg.bg_scale_w,levelbg.bg_scale_h)),(levelbg.mx,0))
+                    # elif event.type == VIDEORESIZE:
+                    #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
+                    #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
+                    #     levelbg.rescale(self.display_height, self.display_width)
+                    #     self.screen.blit(pygame.transform.scale(levelbg.lvl_bg_img, (levelbg.bg_scale_w,levelbg.bg_scale_h)),(levelbg.mx,0))
 
                 # new game after intro
                 # COMMENT BIG see down -> 'line 248'
