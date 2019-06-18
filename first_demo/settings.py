@@ -3,7 +3,7 @@ pygame.init()
 
 # game options/settings
 TITLE = "Cpt Dankis"
-WIDTH = 800
+WIDTH = 1280
 HEIGHT = 600
 FPS = 60
 SPRITESHEET_PLAYER = "IMAGES/p1_spritesheet.png"

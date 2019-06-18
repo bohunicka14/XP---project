@@ -1,5 +1,4 @@
-import pygame
-from pygame.locals import *
+import pygame as pg
 from settings import *
 from sprites import *
 
@@ -135,8 +134,7 @@ class Game:
                 # print(event)
                 self.username = input_box.handle_event(event)
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+                    self.quit_game()
                 # elif event.type == VIDEORESIZE:
                 #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
                 #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
@@ -184,6 +182,11 @@ class Game:
             p = Platform(self, *plat)
             self.all_sprites.add(p)
             self.platforms.add(p)
+
+        p = Ground(WIDTH*5, 70, 0, HEIGHT - 40)
+        self.all_sprites.add(p)
+        self.platforms.add(p)
+
         self.run()
 
     def run(self):
@@ -205,6 +208,7 @@ class Game:
                 self.player.pos.y = hits[0].rect.top
                 self.player.vel.y = 0
         # if player reaches top 1/4 of screen
+
         if self.player.rect.right >= (WIDTH) - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)
             for plat in self.platforms:
@@ -232,6 +236,7 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.quit_game()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
                     self.player.jump()
