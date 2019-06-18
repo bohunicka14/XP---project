@@ -61,13 +61,12 @@ class Platform(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         pg.sprite.Sprite.__init__(self)
         self.game = game
-        # self.image = pg.Surface((w, h))
-        self.image = self.game.spritesheet_other.get_image(648, 0, 70, 70)
+        self.image = self.game.spritesheet_other.get_image(0, 288, 380, 94)
         self.image.set_colorkey(BLACK)
-        # self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
 
 class Ground(pg.sprite.Sprite):
     def __init__(self, w, h, x, y):
