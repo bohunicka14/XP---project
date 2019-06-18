@@ -212,11 +212,17 @@ class Game:
         if self.player.rect.right >= (WIDTH) - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)
             for plat in self.platforms:
-                plat.rect.x -= abs(self.player.vel.x)
+                # plat.rect.x -= abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x -= self.player.posun
         if self.player.rect.left <= WIDTH / 4:
             self.player.pos.x += abs(self.player.vel.x)
             for plat in self.platforms:
-                plat.rect.x += abs(self.player.vel.x)
+                # plat.rect.x += abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x += self.player.posun
 
 
         # spawn new platforms to keep same average number

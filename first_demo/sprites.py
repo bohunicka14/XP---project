@@ -26,6 +26,7 @@ class Player(pg.sprite.Sprite):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
+        self.posun = 5
 
     def jump(self):
         # jump only if standing on a platform
