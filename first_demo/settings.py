@@ -6,6 +6,7 @@ TITLE = "Super Space Cpt Dankis"
 WIDTH = 1280
 HEIGHT = 600
 FPS = 60
+BACKGROUND_IMAGE = "IMAGES/background.png"
 SPRITESHEET_PLAYER = "IMAGES/p1_spritesheet.png"
 SPRITESHEET_ENEMY = "IMAGES/enemies_spritesheet.png"
 SPRITESHEET_OTHER = "IMAGES/spritesheet_jumper.png"

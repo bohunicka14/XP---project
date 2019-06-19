@@ -14,7 +14,7 @@ class InputBox:
         assert type(y) in {int, float}, 'Y parameter has wrong type!'
         assert type(w) in {int, float}, 'W parameter has wrong type!'
         assert type(h) in {int, float}, 'H parameter has wrong type!'
-        assert type(text) == str, 'Text parameter has wron type!'
+        assert type(text) == str, 'Text parameter has wrong type!'
 
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -240,8 +240,7 @@ class Game:
         for t in treat_hits:
             if t.type == 'coin':
                 self.score += 1
-                print(self.score)
-
+                # print(self.score)
         # if player reaches top 1/4 of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)

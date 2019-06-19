@@ -10,6 +10,10 @@ class Spritesheet:
         self.spritesheet = pg.image.load(filename).convert()
 
     def get_image(self, x, y, width, height):
+        assert type(x) in {int}, 'x parameter has wrong type!'
+        assert type(y) in {int}, 'y parameter has wrong type!'
+        assert type(width) in {int}, 'width parameter has wrong type!'
+        assert type(height) in {int}, 'height parameter has wrong type!'
         image = pg.Surface((width, height))
         image.blit(self.spritesheet, (0, 0), (x, y, width, height))
         image = pg.transform.scale(image, (width // 2, height // 2))
@@ -18,6 +22,7 @@ class Spritesheet:
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game):
+        assert game is not None, 'game is None'
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -111,6 +116,9 @@ class Player(pg.sprite.Sprite):
 
 class Platform(pg.sprite.Sprite):
     def __init__(self, game, x, y):
+        assert type(x) in {int, float}, 'x parameter has wrong type!'
+        assert type(y) in {int, float}, 'y parameter has wrong type!'
+        assert game is not None, 'game is None'
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -125,6 +133,7 @@ class Platform(pg.sprite.Sprite):
 
 class Treat(pg.sprite.Sprite):
     def __init__(self, game, plat):
+        assert game is not None, 'game is None'
         self.groups = game.all_sprites, game.treats
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -144,6 +153,10 @@ class Treat(pg.sprite.Sprite):
 
 class Ground(pg.sprite.Sprite):
     def __init__(self, w, h, x, y):
+        assert type(x) in {int}, 'x parameter has wrong type!'
+        assert type(y) in {int}, 'y parameter has wrong type!'
+        assert type(w) in {int}, 'w parameter has wrong type!'
+        assert type(h) in {int}, 'h parameter has wrong type!'
         pg.sprite.Sprite.__init__(self)
         self.image = pg.Surface((w, h))
         self.image.fill(RED)
