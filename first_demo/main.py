@@ -190,20 +190,29 @@ class Game:
         self.spritesheet_player = Spritesheet(SPRITESHEET_PLAYER)
         self.spritesheet_enemy = Spritesheet(SPRITESHEET_ENEMY)
         self.spritesheet_other = Spritesheet(SPRITESHEET_OTHER)
+        self.spritesheet_tiles = Spritesheet(SPRITESHEET_TILES)
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
         self.treats = pg.sprite.Group()
         self.player = Player(self)
-        self.all_sprites.add(self.player)
+        # self.all_sprites.add(self.player)
         for plat in PLATFORM_LIST_LEVEL_1:
-            Platform(self, plat[0], plat[1])
+            Platform(self, plat[0], plat[1], self.spritesheet_other, (0, 288, 380, 94))
 
-        p = Ground(WIDTH*5, 70, 0, HEIGHT - 40)
-        self.all_sprites.add(p)
-        self.platforms.add(p)
+        p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40)
 
         self.run()
         pg.mixer.music.fadeout(500)
+
+    @property
+    def visible_platforms(self):
+        visible_platforms = pg.sprite.Group()
+        for plat in self.platforms:
+            if plat.rect.left <= WIDTH and plat.rect.right >= 0:
+                visible_platforms.add(plat)
+
+        return visible_platforms
+
 
     def run(self):
         # Game Loop
@@ -223,18 +232,35 @@ class Game:
         self.all_sprites.update()
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
-            hits = pg.sprite.spritecollide(self.player, self.platforms, False)
+            hits = pg.sprite.spritecollide(self.player, self.visible_platforms, False)
             if hits:
                 lowest = hits[0]
+                is_obstacle = False
                 for hit in hits:
+                    if isinstance(hit, Obstacle):
+                        is_obstacle = True
+                        lowest = hit
+                        break
                     if hit.rect.bottom > lowest.rect.bottom:
                         lowest = hit
-                if self.player.pos.x < lowest.rect.right + 10 and \
-                        self.player.pos.x > lowest.rect.left - 10:
-                    if self.player.pos.y < lowest.rect.bottom:
-                        self.player.pos.y = lowest.rect.top
-                        self.player.vel.y = 0
-                        self.player.jumping = False
+
+                if is_obstacle:
+                    # collision from right side of obstacle
+                    if self.player.pos.x >= lowest.rect.x:
+                        self.player.pos.x = lowest.rect.right + self.player.rect.width / 2 + 1
+                    # collision from left side of obstacle
+                    elif self.player.pos.x <= lowest.rect.x:
+                        self.player.pos.x = lowest.rect.left - self.player.rect.width / 2 - 1
+                    self.player.vel.x = 0
+
+                else:
+                    if self.player.pos.x < lowest.rect.right + 10 and \
+                            self.player.pos.x > lowest.rect.left - 10:
+                        if self.player.pos.y < lowest.rect.bottom:
+                            self.player.pos.y = lowest.rect.top
+                            self.player.vel.y = 0
+                            self.player.jumping = False
+
         # if player hits coin
         treat_hits = pg.sprite.spritecollide(self.player, self.treats, True)
         for t in treat_hits:
@@ -242,31 +268,42 @@ class Game:
                 self.score += 1
                 print(self.score)
 
-        # if player reaches top 1/4 of screen
+        # if player reaches 3/4 width of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)
             for plat in self.platforms:
                 # plat.rect.x -= abs(self.player.vel.x)
-                # print(self.player.vel)
+                # if plat.rect.right <= 0:
+                #     plat.kill()
+
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     plat.rect.x -= self.player.posun
+            for treat in self.treats:
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    treat.rect.x -= self.player.posun
+
+        # if player reaches 1/4 width of screen
         if self.player.rect.left <= WIDTH / 4:
             self.player.pos.x += abs(self.player.vel.x)
             for plat in self.platforms:
                 # plat.rect.x += abs(self.player.vel.x)
-                # print(self.player.vel)
+                # if plat.rect.left >= WIDTH:
+                #     plat.kill()
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     plat.rect.x += self.player.posun
 
+            for treat in self.treats:
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    treat.rect.x += self.player.posun
+
 
         # spawn new platforms to keep same average number
-        # while len(self.platforms) < 6:
-        #     width = random.randrange(50, 100)
-        #     p = Platform(random.randrange(0, WIDTH - width),
-        #                  random.randrange(-75, -30),
-        #                  width, 20)
-        #     self.platforms.add(p)
-        #     self.all_sprites.add(p)
+        while len(self.visible_platforms) < 8:
+            width = random.randrange(50, 100)
+            Platform(self, WIDTH,
+                     random.randrange(50, HEIGHT -300), self.spritesheet_other, PLATFORM_IMG_COORDS)
+            if random.randint(0, 1):
+                Obstacle(self, WIDTH, HEIGHT - 115, self.spritesheet_tiles, OBSTACLE_IMG_COORDS)
 
     def events(self):
         # Game Loop - events
