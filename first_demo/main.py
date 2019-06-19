@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
 from sprites import *
+from os import path
 
 import time
 import random
@@ -76,6 +77,17 @@ class Game:
         self.running = True
         self.username = ''
         self.show_warning_empty_username = False
+        self.load_data()
+        self.lives, self.score = 0, 0
+
+    def load_data(self):
+        self.dir = path.dirname(__file__)
+        with open(path.join(self.dir, HS_FILE), 'w') as f:
+            try:
+                self.highscore = int(f.read())
+            except:
+                self.highscore = 0
+
 
     def text_objects(self, text, font, color = BLACK):
         assert type(text) == str, 'Text parameter should be the str type!'

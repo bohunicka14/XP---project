@@ -9,6 +9,7 @@ FPS = 60
 SPRITESHEET_PLAYER = "IMAGES/p1_spritesheet.png"
 SPRITESHEET_ENEMY = "IMAGES/enemies_spritesheet.png"
 SPRITESHEET_OTHER = "IMAGES/spritesheet_jumper.png"
+HS_FILE = "highscore.txt"
 
 # Player properties
 PLAYER_ACC = 0.5
