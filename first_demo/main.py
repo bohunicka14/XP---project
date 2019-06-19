@@ -1,38 +1,10 @@
-import pygame
-from pygame.locals import *
+import pygame as pg
+from settings import *
+from sprites import *
+from os import path
 
 import time
 import random
-
-
-pygame.init()
-
-walkRight = [pygame.image.load('IMAGES/R1.png'), pygame.image.load('IMAGES/R2.png'), pygame.image.load('IMAGES/R3.png'),
-             pygame.image.load('IMAGES/R4.png'), pygame.image.load('IMAGES/R5.png'), pygame.image.load('IMAGES/R6.png'),
-             pygame.image.load('IMAGES/R7.png'), pygame.image.load('IMAGES/R8.png'), pygame.image.load('IMAGES/R9.png')]
-walkLeft = [pygame.image.load('IMAGES/L1.png'), pygame.image.load('IMAGES/L2.png'), pygame.image.load('IMAGES/L3.png'),
-            pygame.image.load('IMAGES/L4.png'), pygame.image.load('IMAGES/L5.png'), pygame.image.load('IMAGES/L6.png'),
-            pygame.image.load('IMAGES/L7.png'), pygame.image.load('IMAGES/L8.png'), pygame.image.load('IMAGES/L9.png')]
-
-enemyWalkRight = [pygame.image.load('IMAGES/R1E.png'), pygame.image.load('IMAGES/R2E.png'), pygame.image.load('IMAGES/R3E.png'),
-                 pygame.image.load('IMAGES/R4E.png'), pygame.image.load('IMAGES/R5E.png'), pygame.image.load('IMAGES/R6E.png'),
-                 pygame.image.load('IMAGES/R7E.png'), pygame.image.load('IMAGES/R8E.png'), pygame.image.load('IMAGES/R9E.png'),
-                 pygame.image.load('IMAGES/R10E.png'), pygame.image.load('IMAGES/R11E.png')]
-enemyWalkLeft = [pygame.image.load('IMAGES/L1E.png'), pygame.image.load('IMAGES/L2E.png'), pygame.image.load('IMAGES/L3E.png'),
-                pygame.image.load('IMAGES/L4E.png'), pygame.image.load('IMAGES/L5E.png'), pygame.image.load('IMAGES/L6E.png'),
-                pygame.image.load('IMAGES/L7E.png'), pygame.image.load('IMAGES/L8E.png'), pygame.image.load('IMAGES/L9E.png'),
-                pygame.image.load('IMAGES/L10E.png'), pygame.image.load('IMAGES/L11E.png')]
-
-RED = (200, 0, 0)
-GREEN = (0, 200, 0)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-BRIGHT_RED = (255, 0, 0)
-BRIGHT_GREEN = (0, 255, 0)
-
-COLOR_INACTIVE = pygame.Color('lightskyblue3')
-COLOR_ACTIVE = pygame.Color('dodgerblue2')
-FONT = pygame.font.Font(None, 32)
 
 
 class InputBox:
@@ -97,9 +69,27 @@ class Game:
     def __init__(self):
         self.display_width = 1280
         self.display_height = 720
-        self.screen = pygame.display.set_mode((self.display_width, self.display_height), HWSURFACE | DOUBLEBUF)
+        pg.init()
+        pg.mixer.init()
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        pg.display.set_caption(TITLE)
+        self.clock = pg.time.Clock()
+        self.running = True
         self.username = ''
         self.show_warning_empty_username = False
+        self.load_data()
+        self.lives, self.score = 0, 0
+
+    def load_data(self):
+        self.dir = path.dirname(__file__)
+        with open(path.join(self.dir, HS_FILE), 'w') as f:
+            try:
+                self.highscore = int(f.read())
+            except:
+                self.highscore = 0
+        self.snd_dir = path.join(self.dir, 'SOUNDS')
+        self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
+
 
     def text_objects(self, text, font, color = BLACK):
         assert type(text) == str, 'Text parameter should be the str type!'
@@ -129,9 +119,9 @@ class Game:
                 assert type(c) in {int, float}, 'Wrong color type!'
                 assert 0 <= c <= 255, 'Color parameter out of range!'
 
-        display_width, display_height = pygame.display.get_surface().get_size()
-        assert x <= display_width - w/2, 'Button is partly out of screen! Change coords.'
-        assert y <= display_height - h / 2, 'Button is partly out of screen! Change coords.'
+        # display_width, display_height = pygame.display.get_surface().get_size()
+        # assert x <= display_width - w/2, 'Button is partly out of screen! Change coords.'
+        # assert y <= display_height - h / 2, 'Button is partly out of screen! Change coords.'
 
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
@@ -150,6 +140,8 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
+        pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
+        pg.mixer.music.play(loops=-1)
         intro = True
         input_box = InputBox(self.display_width / 2, self.display_height / 2, 140, 32)
 
@@ -158,8 +150,7 @@ class Game:
                 # print(event)
                 self.username = input_box.handle_event(event)
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+                    self.quit_game()
                 # elif event.type == VIDEORESIZE:
                 #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
                 #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
@@ -189,16 +180,130 @@ class Game:
                 TextRect.center = ((self.display_width / 2 - 60), (self.display_height / 2) + 50)
                 self.screen.blit(TextSurf, TextRect)
 
-            self.button("GO!", self.display_width*1/4, self.display_height*2/3, 100, 50, GREEN, BRIGHT_GREEN, self.game_loop)
+            self.button("GO!", self.display_width*1/4, self.display_height*2/3, 100, 50, GREEN, BRIGHT_GREEN, self.new)
             self.button("Quit", self.display_width*3/4, self.display_height*2/3, 100, 50, RED, BRIGHT_RED, self.quit_game)
 
             pygame.display.update()
 
+    def new(self):
+        # start a new game
+        self.spritesheet_player = Spritesheet(SPRITESHEET_PLAYER)
+        self.spritesheet_enemy = Spritesheet(SPRITESHEET_ENEMY)
+        self.spritesheet_other = Spritesheet(SPRITESHEET_OTHER)
+        self.all_sprites = pg.sprite.Group()
+        self.platforms = pg.sprite.Group()
+        self.treats = pg.sprite.Group()
+        self.enemies = pg.sprite.Group()
+        self.player = Player(self)
+        self.all_sprites.add(self.player)
+        for plat in PLATFORM_LIST_LEVEL_1:
+            Platform(self, plat[0], plat[1])
+
+        p = Ground(WIDTH*5, 70, 0, HEIGHT - 40)
+        self.all_sprites.add(p)
+        self.platforms.add(p)
+
+        self.run()
+        pg.mixer.music.fadeout(500)
+
+    def run(self):
+        # Game Loop
+        pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
+        pg.mixer.music.play(loops=-1)
+        self.playing = True
+        self.fps = 0 # testing
+        while self.playing:
+            self.clock.tick(FPS)
+            self.events()
+            self.update()
+            self.draw()
+        # fadeout of music after ending of game
+        # pg.mixer.music.fadeout(500)
+
+    def update(self):
+        # Game Loop - Update
+        self.all_sprites.update()
+        # spawn enemies
+        self.fps += 1
+        if self.fps > 180:
+            Enemy(self)
+            self.fps = 0
+        # check if player hits a platform - only if falling
+        if self.player.vel.y > 0:
+            hits = pg.sprite.spritecollide(self.player, self.platforms, False)
+            if hits:
+                lowest = hits[0]
+                for hit in hits:
+                    if hit.rect.bottom > lowest.rect.bottom:
+                        lowest = hit
+                if self.player.pos.x < lowest.rect.right + 10 and \
+                        self.player.pos.x > lowest.rect.left - 10:
+                    if self.player.pos.y < lowest.rect.bottom:
+                        self.player.pos.y = lowest.rect.top
+                        self.player.vel.y = 0
+                        self.player.jumping = False
+        # if player hits coin
+        treat_hits = pg.sprite.spritecollide(self.player, self.treats, True)
+        for t in treat_hits:
+            if t.type == 'coin':
+                self.score += 1
+                print(self.score)
+
+        # if player reaches top 1/4 of screen
+        if self.player.rect.right >= WIDTH - WIDTH / 4:
+            self.player.pos.x -= abs(self.player.vel.x)
+            for plat in self.platforms:
+                # plat.rect.x -= abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x -= self.player.posun
+        if self.player.rect.left <= WIDTH / 4:
+            self.player.pos.x += abs(self.player.vel.x)
+            for plat in self.platforms:
+                # plat.rect.x += abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x += self.player.posun
+
+
+        # spawn new platforms to keep same average number
+        # while len(self.platforms) < 6:
+        #     width = random.randrange(50, 100)
+        #     p = Platform(random.randrange(0, WIDTH - width),
+        #                  random.randrange(-75, -30),
+        #                  width, 20)
+        #     self.platforms.add(p)
+        #     self.all_sprites.add(p)
+
+    def events(self):
+        # Game Loop - events
+        for event in pg.event.get():
+            # check for closing window
+            if event.type == pg.QUIT:
+                if self.playing:
+                    self.playing = False
+                self.running = False
+                self.quit_game()
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_UP:
+                    self.player.jump()
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_UP:
+                    self.player.jump_cut()
+
+    def draw(self):
+        # Game Loop - draw
+        self.screen.fill(BLACK)
+        self.all_sprites.draw(self.screen)
+        # *after* drawing everything, flip the display
+        pg.display.flip()
+
     def game_loop(self):
         #object level background
         levelbg = LevelBg(screen_height=self.display_height)
-        player = Player(200, 578, 64, 64)
-        enemy = Enemy(100, 588, 64, 64, 450)
+        self.spritesheet = Spritesheet(SPRITESHEET)
+        self.player = Player(self)
+        # enemy = Enemy(100, 588, 64, 64, 450)
 
         if self.username:
             gameExit = False
@@ -217,45 +322,45 @@ class Game:
                 # new game after intro
                 # COMMENT BIG see down -> 'line 248'
 
-                keys = pygame.key.get_pressed()
-
-                if keys[pygame.K_LEFT] and player.x > player.vel:
-                    player.x -= player.vel
-                    player.left = True
-                    player.right = False
-                elif keys[pygame.K_RIGHT] and player.x < self.display_width - player.width - player.vel:
-                    player.x += player.vel
-                    player.right = True
-                    player.left = False
-                else:
-                    player.right = False
-                    player.left = False
-                    player.walkCount = 0
-
-                if not player.isJump:
-                    if keys[pygame.K_UP]:
-                        player.isJump = True
-                        player.right = False
-                        player.left = False
-                        player.walkCount = 0
-                else:
-                    if player.jumpCount >= -10:
-                        neg = 1
-                        if player.jumpCount < 0:
-                            neg = -1
-                        player.y -= (player.jumpCount ** 2) * 0.5 * neg
-                        player.jumpCount -= 1
-                    else:
-                        player.isJump = False
-                        player.jumpCount = 10
-
-                # pygame.display.update()
-
-                levelbg.move(-1)
+                # keys = pygame.key.get_pressed()
+                #
+                # if keys[pygame.K_LEFT] and player.x > player.vel:
+                #     player.x -= player.vel
+                #     player.left = True
+                #     player.right = False
+                # elif keys[pygame.K_RIGHT] and player.x < self.display_width - player.width - player.vel:
+                #     player.x += player.vel
+                #     player.right = True
+                #     player.left = False
+                # else:
+                #     player.right = False
+                #     player.left = False
+                #     player.walkCount = 0
+                #
+                # if not player.isJump:
+                #     if keys[pygame.K_UP]:
+                #         player.isJump = True
+                #         player.right = False
+                #         player.left = False
+                #         player.walkCount = 0
+                # else:
+                #     if player.jumpCount >= -10:
+                #         neg = 1
+                #         if player.jumpCount < 0:
+                #             neg = -1
+                #         player.y -= (player.jumpCount ** 2) * 0.5 * neg
+                #         player.jumpCount -= 1
+                #     else:
+                #         player.isJump = False
+                #         player.jumpCount = 10
+                #
+                # # pygame.display.update()
+                #
+                # levelbg.move(-1)
                 self.screen.blit(levelbg.lvl_bg_img, (0, 0))
                 self.screen.blit(pygame.transform.scale(levelbg.lvl_bg_img, (levelbg.bg_scale_w,levelbg.bg_scale_h)),(levelbg.mx,0))
-                player.draw(self.screen)
-                enemy.draw(self.screen)
+                self.player.update()
+                # enemy.draw(self.screen)
 
                 #tu niekde bude zrejme blit postavy, skalovanie velkosti postavy by malo byt take iste ako backgroundu meni sa podla vysky okna
                 #malo by sa dat pouzit toto -> int()(levelbg.display_height/levelbg.bg_height)* vyska_hraca )
@@ -333,70 +438,74 @@ class LevelBg:
         if self.testrun: print(self.mx, self.bg_scale_w - self.display_width)
 
 
-class Player:
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.vel = 5
-        self.isJump = False
-        self.left = False
-        self.right = False
-        self.walkCount = 0
-        self.jumpCount = 10
-        self.character = pygame.image.load('IMAGES/standing.png')
-
-    def draw(self, win):
-        if self.walkCount + 1 >= 27:
-            self.walkCount = 0
-
-        if self.left:
-            win.blit(walkLeft[self.walkCount // 3], (self.x, self.y))
-            self.walkCount += 1
-        elif self.right:
-            win.blit(walkRight[self.walkCount // 3], (self.x, self.y))
-            self.walkCount += 1
-        else:
-            win.blit(self.character, (self.x, self.y))
-
-
-class Enemy:
-    def __init__(self, x, y, width, height, end):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.end = end
-        self.path = [self.x, self.end]
-        self.walkCount = 0
-        self.vel = 3
-
-    def draw(self, win):
-        self.move()
-        if self.walkCount + 1 >= 33:
-            self.walkCount = 0
-
-        if self.vel > 0:
-            win.blit(enemyWalkRight[self.walkCount//3], (self.x, self.y))
-            self.walkCount += 1
-        else:
-            win.blit(enemyWalkLeft[self.walkCount//3], (self.x, self.y))
-            self.walkCount += 1
-
-    def move(self):
-        if self.vel > 0:
-            if self.x + self.vel < self.path[1]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1
-                self.walkCount = 0
-        else:
-            if self.x - self.vel > self.path[0]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1
-                self.walkCount = 0
+# class Player:
+#     def __init__(self, x, y, width, height):
+#         self.x = x
+#         self.y = y
+#         self.width = width
+#         self.height = height
+#         self.vel = 5
+#         self.isJump = False
+#         self.left = False
+#         self.right = False
+#         self.walkCount = 0
+#         self.jumpCount = 10
+#         self.character = pygame.image.load('IMAGES/standing.png')
+#
+#     def draw(self, win):
+#         assert len(walkLeft) != 0, 'Zoznam obrazkov je prazdny'
+#         assert len(walkRight) != 0, 'Zoznam obrazkov je prazdny'
+#         if self.walkCount + 1 >= 27:
+#             self.walkCount = 0
+#
+#         if self.left:
+#             win.blit(walkLeft[self.walkCount // 3], (self.x, self.y))
+#             self.walkCount += 1
+#         elif self.right:
+#             win.blit(walkRight[self.walkCount // 3], (self.x, self.y))
+#             self.walkCount += 1
+#         else:
+#             win.blit(self.character, (self.x, self.y))
+#
+#
+# class Enemy:
+#     def __init__(self, x, y, width, height, end):
+#         self.x = x
+#         self.y = y
+#         self.width = width
+#         self.height = height
+#         self.end = end
+#         self.path = [self.x, self.end]
+#         self.walkCount = 0
+#         self.vel = 3
+#
+#     def draw(self, win):
+#         self.move()
+#         assert len(enemyWalkLeft) != 0, 'Zoznam obrazkov je prazdny'
+#         assert len(enemyWalkRight) != 0, 'Zoznam obrazkov je prazdny'
+#         if self.walkCount + 1 >= 33:
+#             self.walkCount = 0
+#
+#         if self.vel > 0:
+#             win.blit(enemyWalkRight[self.walkCount//3], (self.x, self.y))
+#             self.walkCount += 1
+#         else:
+#             win.blit(enemyWalkLeft[self.walkCount//3], (self.x, self.y))
+#             self.walkCount += 1
+#
+#     def move(self):
+#         if self.vel > 0:
+#             if self.x + self.vel < self.path[1]:
+#                 self.x += self.vel
+#             else:
+#                 self.vel = self.vel * -1
+#                 self.walkCount = 0
+#         else:
+#             if self.x - self.vel > self.path[0]:
+#                 self.x += self.vel
+#             else:
+#                 self.vel = self.vel * -1
+#                 self.walkCount = 0
 
 
 if __name__ == '__main__':
