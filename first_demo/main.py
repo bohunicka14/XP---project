@@ -87,6 +87,8 @@ class Game:
                 self.highscore = int(f.read())
             except:
                 self.highscore = 0
+        self.snd_dir = path.join(self.dir, 'SOUNDS')
+        self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
 
 
     def text_objects(self, text, font, color = BLACK):
@@ -138,6 +140,8 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
+        pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
+        pg.mixer.music.play(loops=-1)
         intro = True
         input_box = InputBox(self.display_width / 2, self.display_height / 2, 140, 32)
 
@@ -200,15 +204,20 @@ class Game:
         self.platforms.add(p)
 
         self.run()
+        pg.mixer.music.fadeout(500)
 
     def run(self):
         # Game Loop
+        pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
+        pg.mixer.music.play(loops=-1)
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        # fadeout of music after ending of game
+        # pg.mixer.music.fadeout(500)
 
     def update(self):
         # Game Loop - Update
