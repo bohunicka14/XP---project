@@ -192,12 +192,11 @@ class Game:
         self.spritesheet_other = Spritesheet(SPRITESHEET_OTHER)
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
+        self.treats = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
         for plat in PLATFORM_LIST_LEVEL_1:
-            p = Platform(self, plat[0], plat[1])
-            self.all_sprites.add(p)
-            self.platforms.add(p)
+            Platform(self, plat[0], plat[1])
 
         p = Ground(WIDTH*5, 70, 0, HEIGHT - 40)
         self.all_sprites.add(p)
@@ -230,12 +229,20 @@ class Game:
                 for hit in hits:
                     if hit.rect.bottom > lowest.rect.bottom:
                         lowest = hit
-                if self.player.pos.y < lowest.rect.bottom:
-                    self.player.pos.y = lowest.rect.top
-                    self.player.vel.y = 0
-                    self.player.jumping = False
-        # if player reaches top 1/4 of screen
+                if self.player.pos.x < lowest.rect.right + 10 and \
+                        self.player.pos.x > lowest.rect.left - 10:
+                    if self.player.pos.y < lowest.rect.bottom:
+                        self.player.pos.y = lowest.rect.top
+                        self.player.vel.y = 0
+                        self.player.jumping = False
+        # if player hits coin
+        treat_hits = pg.sprite.spritecollide(self.player, self.treats, True)
+        for t in treat_hits:
+            if t.type == 'coin':
+                self.score += 1
+                print(self.score)
 
+        # if player reaches top 1/4 of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)
             for plat in self.platforms:

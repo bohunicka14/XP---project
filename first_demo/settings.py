@@ -15,7 +15,10 @@ HS_FILE = "highscore.txt"
 PLAYER_ACC = 0.5
 PLAYER_FRICTION = -0.12
 PLAYER_GRAV = 0.8
-PLAYER_JUMP = 18
+PLAYER_JUMP = 25
+
+# Game properties
+TREAT_SPAWN = 7
 
 # Starting platforms
 PLATFORM_LIST_LEVEL_1 = [(0, HEIGHT - 40),
