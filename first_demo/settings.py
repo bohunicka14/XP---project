@@ -2,7 +2,7 @@ import pygame
 pygame.init()
 
 # game options/settings
-TITLE = "Cpt Dankis"
+TITLE = "Super Space Cpt Dankis"
 WIDTH = 1280
 HEIGHT = 600
 FPS = 60
@@ -15,6 +15,7 @@ HS_FILE = "highscore.txt"
 PLAYER_ACC = 0.5
 PLAYER_FRICTION = -0.12
 PLAYER_GRAV = 0.8
+PLAYER_JUMP = 18
 
 # Starting platforms
 PLATFORM_LIST_LEVEL_1 = [(0, HEIGHT - 40),
