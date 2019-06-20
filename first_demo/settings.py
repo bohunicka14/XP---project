@@ -16,7 +16,6 @@ HS_FILE = "highscore.txt"
 TREAT_IMG_COORDS = (244, 1981, 61, 61)
 PLATFORM_IMG_COORDS = (0, 288, 380, 94)
 OBSTACLE_IMG_COORDS = (864, 0, 48, 146)
-FINISH_IMG_COORDS = (288, 360, 70, 70)
 
 
 # Player properties
@@ -26,6 +25,8 @@ PLAYER_GRAV = 0.8
 PLAYER_JUMP = 25
 
 # Enemy properties
+ENEMY_SPAWN_SPEED = 100
+ENEMY_SPAWN_TIMER = 1000
 
 # Game properties
 TREAT_SPAWN = 50
@@ -52,4 +53,3 @@ BRIGHT_GREEN = (0, 255, 0)
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 FONT = pygame.font.Font(None, 32)
-

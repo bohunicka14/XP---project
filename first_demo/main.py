@@ -6,6 +6,7 @@ from os import path
 
 import time
 import random
+import unittest
 
 
 class InputBox:
@@ -68,6 +69,8 @@ class InputBox:
 
 class Game:
     def __init__(self):
+        WIDTH = 1280
+        HEIGHT = 720
         pg.init()
         pg.mixer.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -78,6 +81,7 @@ class Game:
         self.show_warning_empty_username = False
         self.load_data()
         self.lives, self.score = 0, 0
+        self.enemspawnsped = ENEMY_SPAWN_SPEED
 
     def load_data(self):
         self.dir = path.dirname(__file__)
@@ -93,7 +97,6 @@ class Game:
 
         assert path.isfile(path.join(self.snd_dir, 'Jump21.wav')), 'file Jump21.wav does not exist'
         self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
-        self.dmg_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Randomize37.wav'))
 
 
     def text_objects(self, text, font, color = BLACK):
@@ -145,7 +148,7 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
-        assert path.isfile(path.join(self.snd_dir, 'Menu.ogg')), 'file Menu.ogg does not exist'
+        assert path.isfile(path.join(self.snd_dir, 'Menu.ogg')), 'file menu.ogg does not exists'
         pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
         pg.mixer.music.play(loops=-1)
         intro = True
@@ -202,8 +205,6 @@ class Game:
         self.treats = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
         self.player = Player(self)
-        self.finish = Finish(self, WIDTH*5 - 50, HEIGHT - 75)
-        self.score = 0
 
         for plat in PLATFORM_LIST_LEVEL_1:
             assert len(plat) == 2, "Platform coords are wrong. Check settings.py"
@@ -211,9 +212,7 @@ class Game:
             assert type(plat[1]) in {int, float}, "Wrong type of platform coordinates"
             Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
 
-        p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40, True)
-        left_wall = Ground(self, 50, HEIGHT, 0, 0)
-        right_wall = Ground(self, 50, HEIGHT, WIDTH*5, 0)
+        p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40)
 
         self.run()
         pg.mixer.music.fadeout(500)
@@ -234,7 +233,8 @@ class Game:
         pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
         pg.mixer.music.play(loops=-1)
         self.playing = True
-        self.fps = 0 # testing
+        self.spawntimer = 0
+        self.spawnt2 = 0
         self.wasenemyhit = False
         while self.playing:
             self.clock.tick(FPS)
@@ -248,28 +248,22 @@ class Game:
         # Game Loop - Update
         self.all_sprites.update()
         # spawn enemies
-        self.fps += 1
-        if self.fps > 180:
+        self.spawntimer += 1
+        if self.spawntimer > self.enemspawnsped:
             Enemy(self)
-            self.fps = 0
+            self.spawnt2 += self.spawntimer
+            self.spawntimer = 0
+            #speed up spawning
+            if self.spawnt2 > ENEMY_SPAWN_TIMER and self.enemspawnsped > 40:
+                self.enemspawnsped -= 10
+                self.spawnt2 = 0
+
         #enemies collides PLAYER
         # print("self.enemies", self.enemies)
         enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
         if enemy_hit and not self.wasenemyhit:
-            if enemy_hit[0].rect.y - self.player.rect.y > 0 and enemy_hit[0].rect.y - self.player.rect.y < \
-                    enemy_hit[0].rect.height/2 + self.player.rect.height/2:
-                # player jumped on top of enemy
-                enemy_hit[0].kill()
-            else:
-                self.player.health -= self.player.damage
-                self.wasenemyhit = True
-                if self.player.health <= 0:
-                    self.game_over_screen('lose')
-                # print("hitted enemy", self.player.health)
-
-            self.dmg_sound.play()
-            # print("hitted enemy", self.player.health)
-
+            self.player.health -= self.player.damage
+            self.wasenemyhit = True
         else:
             if not enemy_hit:
                 self.wasenemyhit = False
@@ -283,7 +277,7 @@ class Game:
                 lowest = hits[0]
                 is_obstacle = False
                 for hit in hits:
-                    if isinstance(hit, Obstacle) or (isinstance(hit, Ground) and hit.is_floor == False):
+                    if isinstance(hit, Obstacle):
                         is_obstacle = True
                         lowest = hit
                         break
@@ -291,14 +285,13 @@ class Game:
                         lowest = hit
 
                 if is_obstacle:
-                    self.player.vel.x = 0
                     # collision from right side of obstacle
                     if self.player.pos.x >= lowest.rect.x:
                         self.player.pos.x = lowest.rect.right + self.player.rect.width / 2 + 1
                     # collision from left side of obstacle
                     elif self.player.pos.x <= lowest.rect.x:
                         self.player.pos.x = lowest.rect.left - self.player.rect.width / 2 - 1
-
+                    self.player.vel.x = 0
 
                 else:
                     if self.player.pos.x < lowest.rect.right + 10 and \
@@ -313,12 +306,7 @@ class Game:
         for t in treat_hits:
             if t.type == 'coin':
                 self.score += 1
-
-        # if player hits exit
-        col = pg.sprite.collide_rect(self.player, self.finish)
-        if col:
-            if self.score > 5:
-                self.game_over_screen('win')
+                # print(self.score)
 
         # if player reaches 3/4 width of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
@@ -338,9 +326,6 @@ class Game:
             for enemy in self.enemies:
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     enemy.rect.x -= self.player.posun
-
-            # if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
-            #     self.finish.rect.x -= self.player.posun
 
         # if player reaches 1/4 width of screen
         if self.player.rect.left <= WIDTH / 4:
@@ -384,36 +369,10 @@ class Game:
                 if event.key == pg.K_UP:
                     self.player.jump_cut()
 
-    def game_over_screen(self, result):
-        top_ten_list = self.make_top_ten_list(self.username, self.score)
-        if result == 'lose':
-            color = YELLOW
-            self.screen.fill(LIGHTBLUE)
-            self.draw_text("GAME OVER", 50, color, WIDTH / 2, HEIGHT / 4)
-        else:
-            color = LIGHTBLUE
-            self.screen.fill(YELLOW)
-            self.draw_text("YOU WON", 50, color, WIDTH / 2, HEIGHT / 4)
-        self.draw_text("Score: " + str(self.score), 40, color, WIDTH / 2, HEIGHT / 2 - 80)
-        for i in range(len(top_ten_list[:10])):
-            self.draw_text(str(i+1) + ". " + top_ten_list[i][0] + " " + str(top_ten_list[i][1]), 22, color, WIDTH / 2, HEIGHT / 2 + i * 25)
-        self.draw_text("Press space key to play again", 22, color, WIDTH / 2, HEIGHT - 40)
-        pg.display.flip()
-        self.wait_for_key()
-
-    def wait_for_key(self):
-        waiting = True
-        while waiting:
-            self.clock.tick(FPS)
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    self.quit_game()
-                    waiting = False
-                    self.running = False
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_SPACE:
-                        self.new()
-                        waiting = False
+    def game_over_screen(self):
+        # vypis dosiahnute skore a tabulku top 10 hracov z highscore.txt
+        # for cyklom prejde vrateny list a urobi draw_text
+        pass
 
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font('freesansbold.ttf', size)
@@ -423,21 +382,8 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def make_top_ten_list(self, player_name, player_score):
-        top_ten_list = []
-        data = str(player_name) + "-" + str(player_score)
-        self.dir = path.dirname(__file__)
-        with open(path.join(self.dir, HS_FILE), 'a') as fa:
-            fa.write(data + '\n')
-            fa.close()
-        with open(path.join(self.dir, HS_FILE), 'r') as fr:
-            for row in fr:
-                r = row.rstrip('\n').split('-')
-                top_ten_list.append((r[0], int(r[1])))
-        top_ten_list.sort(key=self.sortSecond, reverse=True)
-        return top_ten_list
-
-    def sortSecond(self, val):
-        return val[1]
+        # otvori sa subor, zapise sa player_name s jeho skore, potom sa prejde subor a vrati sa top 10 hracov
+        pass
 
     def draw(self):
         # Game Loop - draw
@@ -576,8 +522,55 @@ class LevelBg:
 
 
 
+class Tester(unittest.TestCase):
+    # self.assertEqual(, )
+
+    def test_settings(self):
+        self.assertEqual(TITLE, "Super Space Cpt Dankis")
+        self.assertEqual(WIDTH, 1280)
+        self.assertEqual(HEIGHT, 600)
+        self.assertEqual(FPS, 60)
+
+        self.assertEqual(SPRITESHEET_PLAYER, "IMAGES/p1_spritesheet.png")
+        self.assertEqual(SPRITESHEET_ENEMY, "IMAGES/enemies_spritesheet.png")
+        self.assertEqual(SPRITESHEET_OTHER, "IMAGES/spritesheet_jumper.png")
+        self.assertEqual(SPRITESHEET_TILES, "IMAGES/tiles_spritesheet.png")
+        self.assertEqual(HS_FILE, "highscore.txt")
+
+        self.assertEqual(TREAT_IMG_COORDS, (244, 1981, 61, 61))
+        self.assertEqual(PLATFORM_IMG_COORDS, (0, 288, 380, 94))
+        self.assertEqual(OBSTACLE_IMG_COORDS, (864, 0, 48, 146))
+
+        self.assertEqual(PLAYER_ACC, 0.5)
+        self.assertEqual(PLAYER_FRICTION, -0.12)
+        self.assertEqual(PLAYER_GRAV, 0.8)
+        self.assertEqual(PLAYER_JUMP, 25)
+        self.assertEqual(TREAT_SPAWN, 50)
+
+        self.assertEqual(PLATFORM_LIST_LEVEL_1, [(0, HEIGHT - 40),(WIDTH / 2 - 50, HEIGHT * 3 / 4),(125, HEIGHT - 350),(350, 200),(175, 100)])
+        self.assertEqual(WHITE, (255, 255, 255))
+        self.assertEqual(BLACK, (0, 0, 0))
+        self.assertEqual(RED, (255, 0, 0))
+        self.assertEqual(GREEN, (0, 255, 0))
+        self.assertEqual(BLUE, (0, 0, 255))
+        self.assertEqual(YELLOW, (255, 255, 0))
+        self.assertEqual(LIGHTBLUE, (0, 155, 155))
+        self.assertEqual(BRIGHT_RED, (255, 0, 0))
+        self.assertEqual(BRIGHT_GREEN,  (0, 255, 0))
+
+        self.assertEqual(COLOR_INACTIVE, pygame.Color('lightskyblue3'))
+        self.assertEqual(COLOR_ACTIVE, pygame.Color('dodgerblue2'))
+        self.assertEqual(type(FONT), type(pygame.font.Font(None, 32)))
+
+    def test_inputbox(self):
+        # inputbox = InputBox()
+        pass
+
+
+
+
 if __name__ == '__main__':
     game = Game()
     game.game_intro()
 
-
+    # unittest.main(verbosity=2)
