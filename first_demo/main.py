@@ -68,8 +68,6 @@ class InputBox:
 
 class Game:
     def __init__(self):
-        WIDTH = 1280
-        HEIGHT = 720
         pg.init()
         pg.mixer.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
