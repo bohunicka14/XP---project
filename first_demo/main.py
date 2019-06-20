@@ -61,6 +61,8 @@ class InputBox:
 
     def draw(self, screen):
         # Blit the text.
+        assert type(self.rect.x) in {float, int}, "self.rect.x has wrong type"
+        assert type(self.rect.y) in {float, int}, "self.rect.x has wrong type"
         screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
@@ -79,6 +81,12 @@ class Game:
         self.load_data()
         self.lives, self.score = 0, 0
         self.enemspawnsped = ENEMY_SPAWN_SPEED
+
+        self.lvl_bg_name = 'IMAGES/background.png'
+        self.lvl_bg_img = pygame.image.load(self.lvl_bg_name).convert()
+        self.screen.blit(self.lvl_bg_img, (0, 0))
+
+
 
     def load_data(self):
         self.dir = path.dirname(__file__)
@@ -213,8 +221,8 @@ class Game:
             Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
 
         p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40, True)
-        left_wall = Ground(self, 50, HEIGHT, 0, 0)
-        right_wall = Ground(self, 50, HEIGHT, WIDTH*5, 0)
+        left_wall = Ground(self, 350, HEIGHT, -350, 0)
+        right_wall = Ground(self, 350, HEIGHT, WIDTH*5, 0)
 
         self.run()
         pg.mixer.music.fadeout(500)
@@ -383,7 +391,7 @@ class Game:
         while len(self.visible_platforms) < 5:
             width = random.randrange(50, 100)
             Platform(self, WIDTH,
-                     random.randrange(50, HEIGHT -300), self.spritesheet_other, PLATFORM_IMG_COORDS)
+                     random.randrange(50, HEIGHT - 300), self.spritesheet_other, PLATFORM_IMG_COORDS)
             if random.randint(0, 1):
                 Obstacle(self, WIDTH, HEIGHT - 115, self.spritesheet_tiles, OBSTACLE_IMG_COORDS)
 
@@ -460,138 +468,19 @@ class Game:
 
     def draw(self):
         # Game Loop - draw
-        self.screen.fill(BLACK)
+        # self.screen.fill(BLACK)
+
+        self.screen.blit(self.lvl_bg_img, (0, 0))
+
         self.all_sprites.draw(self.screen)
+
         self.draw_text("Coins: " + str(self.score), 22, WHITE, WIDTH / 2, 15)
         self.draw_text("Health: " + str(self.player.health), 22, WHITE, WIDTH / 2, 40)
         self.draw_text("Player: " + str(self.username), 22, WHITE, WIDTH / 2, 65)
         # *after* drawing everything, flip the display
         pg.display.flip()
 
-    def game_loop(self):
-        #object level background
-        levelbg = LevelBg()
-        self.spritesheet = Spritesheet(SPRITESHEET)
-        self.player = Player(self)
 
-        if self.username:
-            gameExit = False
-            assert self.username != '', 'Username is empty!'
-            while not gameExit:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-
-                # new game after intro
-                # COMMENT BIG see down -> 'line 248'
-
-                # keys = pygame.key.get_pressed()
-                #
-                # if keys[pygame.K_LEFT] and player.x > player.vel:
-                #     player.x -= player.vel
-                #     player.left = True
-                #     player.right = False
-                # elif keys[pygame.K_RIGHT] and player.x < WIDTH - player.width - player.vel:
-                #     player.x += player.vel
-                #     player.right = True
-                #     player.left = False
-                # else:
-                #     player.right = False
-                #     player.left = False
-                #     player.walkCount = 0
-                #
-                # if not player.isJump:
-                #     if keys[pygame.K_UP]:
-                #         player.isJump = True
-                #         player.right = False
-                #         player.left = False
-                #         player.walkCount = 0
-                # else:
-                #     if player.jumpCount >= -10:
-                #         neg = 1
-                #         if player.jumpCount < 0:
-                #             neg = -1
-                #         player.y -= (player.jumpCount ** 2) * 0.5 * neg
-                #         player.jumpCount -= 1
-                #     else:
-                #         player.isJump = False
-                #         player.jumpCount = 10
-                #
-                # # pygame.display.update()
-                #
-                # levelbg.move(-1)
-                self.screen.blit(levelbg.lvl_bg_img, (0, 0))
-                self.screen.blit(pygame.transform.scale(levelbg.lvl_bg_img, (levelbg.bg_scale_w,levelbg.bg_scale_h)),(levelbg.mx,0))
-                self.player.update()
-                # enemy.draw(self.screen)
-
-                #tu niekde bude zrejme blit postavy, skalovanie velkosti postavy by malo byt take iste ako backgroundu meni sa podla vysky okna
-                #malo by sa dat pouzit toto -> int()(levelbg.display_height/levelbg.bg_height)* vyska_hraca )
-                #pohyb pozadia je pomocou levelbg.move(-1)
-                #kde -1 je hracov pohyb doprava...
-                # .move() nie je uplne top doladeny...
-
-
-                pygame.display.update()
-                # clock.tick(60) # na toto nesahat, nedokoncene
-        else:
-            self.show_warning_empty_username = True
-            assert self.username == '', 'Username should be empty!'
-
-
-    # def redrawGameWindow():
-    #     self.screen.blit(levelbg, (0, 0))
-    #     player.draw(win)
-    #     enemy.draw(self.screen)
-    #     pygame.display.update()
-
-
-class LevelBg:
-    def __init__(self, lvl_bg_num='1-1'):
-        self.lvl_bg_name = 'textures/World ' + lvl_bg_num + '.png'
-        self.lvl_bg_img = None
-        self.bg_width = 3392
-        self.bg_height = 224
-        self.bg_scale_w = 1
-        self.bg_scale_h = 1
-        self.mx = 0
-
-        self.testrun = False
-        #auto itself initialization
-        self.load_img()
-        self.crop_img()
-        # self.rescale()
-
-    def load_img(self):
-        try:
-            self.lvl_bg_img = pygame.image.load(self.lvl_bg_name).convert()
-        except pygame.error:
-            print("ERROR: Cannot load image: " + self.lvl_bg_name)
-        if self.testrun: print('Loading img')
-
-    def crop_img(self, left_up_x=0, left_up_y=0, right_down_x = 0, right_down_y=0):
-        if right_down_x == 0: right_down_x = self.bg_width
-        if right_down_y == 0: right_down_y = self.bg_height
-        try:
-            self.lvl_bg_img = self.lvl_bg_img.subsurface(left_up_x,left_up_y,right_down_x,right_down_y)
-        except:
-            print('ERROR: BAD crop coordinates. Actual cor: left up x:{} y:{}, right down x:{} y:{}'.format(left_up_x,left_up_y,right_down_x,right_down_y))
-        if self.testrun: print('Cropping img')
-
-    def rescale(self):
-        self.bg_scale_w = int(HEIGHT/self.bg_height*self.bg_width)
-        self.bg_scale_h = int(HEIGHT/self.bg_height*self.bg_height)
-
-        if self.testrun: print('Rescale img')
-        if self.testrun: print(self.bg_scale_w)
-
-    def move(self, x):
-        if self.mx <= - (self.bg_scale_w - WIDTH):
-            self.mx = - (self.bg_scale_w - WIDTH)
-        else:
-            self.mx += x
-        if self.testrun: print(self.mx, self.bg_scale_w - WIDTH)
 
 class Tester(unittest.TestCase):
     # self.assertEqual(, )
@@ -633,9 +522,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(COLOR_ACTIVE, pygame.Color('dodgerblue2'))
         self.assertEqual(type(FONT), type(pygame.font.Font(None, 32)))
 
-    def test_inputbox(self):
-        # inputbox = InputBox()
-        pass
 
 
 if __name__ == '__main__':

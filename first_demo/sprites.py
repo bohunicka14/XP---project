@@ -223,7 +223,7 @@ class Ground(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((w, h))
-        self.image.fill(RED)
+        self.image.fill(BROWN)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
