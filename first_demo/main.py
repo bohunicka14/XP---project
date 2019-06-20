@@ -339,7 +339,7 @@ class Game:
                     enemy.rect.x += self.player.posun
 
         # spawn new platforms to keep same average number
-        while len(self.visible_platforms) < 8:
+        while len(self.visible_platforms) < 5:
             width = random.randrange(50, 100)
             Platform(self, WIDTH,
                      random.randrange(50, HEIGHT -300), self.spritesheet_other, PLATFORM_IMG_COORDS)
@@ -362,13 +362,31 @@ class Game:
                 if event.key == pg.K_UP:
                     self.player.jump_cut()
 
+    def game_over_screen(self):
+        # vypis dosiahnute skore a tabulku top 10 hracov z highscore.txt
+        # for cyklom prejde vrateny list a urobi draw_text
+        pass
+
+    def draw_text(self, text, size, color, x, y):
+        font = pg.font.Font('freesansbold.ttf', size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x, y)
+        self.screen.blit(text_surface, text_rect)
+
+    def make_top_ten_list(self, player_name, player_score):
+        # otvori sa subor, zapise sa player_name s jeho skore, potom sa prejde subor a vrati sa top 10 hracov
+        pass
+
     def draw(self):
         # Game Loop - draw
         self.screen.fill(BLACK)
         self.all_sprites.draw(self.screen)
+        self.draw_text("Coins: " + str(self.score), 22, WHITE, WIDTH / 2, 15)
+        self.draw_text("Health: " + str(self.player.health), 22, WHITE, WIDTH / 2, 40)
+        self.draw_text("Player: " + str(self.username), 22, WHITE, WIDTH / 2, 65)
         # *after* drawing everything, flip the display
         pg.display.flip()
-
 
     def game_loop(self):
         #object level background
