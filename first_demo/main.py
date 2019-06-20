@@ -365,7 +365,6 @@ class Game:
         levelbg = LevelBg()
         self.spritesheet = Spritesheet(SPRITESHEET)
         self.player = Player(self)
-        # enemy = Enemy(100, 588, 64, 64, 450)
 
         if self.username:
             gameExit = False
@@ -473,8 +472,6 @@ class LevelBg:
 
 
     def move(self, x):
-        #mx = 0 lavy okraj zarovnany
-        #mx = - (self.bg_scale_w - self.display_width)
         if self.mx <= - (self.bg_scale_w - WIDTH):
             self.mx = - (self.bg_scale_w - WIDTH)
         else:
@@ -486,5 +483,4 @@ class LevelBg:
 if __name__ == '__main__':
     game = Game()
     game.game_intro()
-
 

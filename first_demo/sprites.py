@@ -1,3 +1,4 @@
+# Sprite classes for platform game
 import pygame as pg
 import random
 from settings import *
@@ -225,4 +226,3 @@ class Treat(pg.sprite.Sprite):
         self.rect.bottom = self.plat.rect.top - 5
         if not self.game.platforms.has(self.plat):
             self.kill()
-
