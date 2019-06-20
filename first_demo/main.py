@@ -79,7 +79,7 @@ class Game:
         self.username = ''
         self.show_warning_empty_username = False
         self.load_data()
-        self.lives, self.score = 0, 0
+        self.health, self.score = 100, 0
 
     def load_data(self):
         self.dir = path.dirname(__file__)
@@ -283,7 +283,17 @@ class Game:
         for t in treat_hits:
             if t.type == 'coin':
                 self.score += 1
+                # len test na game over a zapisanie do suboru
+                if self.score == 1:
+                    self.game_over_screen()
                 # print(self.score)
+
+        # if player hits enemy
+        enemies_hits = pg.sprite.spritecollide(self.player, self.enemies, True)
+        if enemies_hits:
+            self.health -= 10
+            if self.health == 0:
+                self.game_over_screen()
 
         # if player reaches 3/4 width of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
@@ -346,10 +356,29 @@ class Game:
                 if event.key == pg.K_UP:
                     self.player.jump_cut()
 
+    def game_over_screen(self):
+        # vypis dosiahnute skore a tabulku top 10 hracov z highscore.txt
+        # for cyklom prejde vrateny list a urobi draw_text
+        pass
+
+    def draw_text(self, text, size, color, x, y):
+        font = pg.font.Font('freesansbold.ttf', size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x, y)
+        self.screen.blit(text_surface, text_rect)
+
+    def make_top_ten_list(self, player_name, player_score):
+        # otvori sa subor, zapise sa player_name s jeho skore, potom sa prejde subor a vrati sa top 10 hracov
+        pass
+
     def draw(self):
         # Game Loop - draw
         self.screen.fill(BLACK)
         self.all_sprites.draw(self.screen)
+        self.draw_text("Coins: " + str(self.score), 22, WHITE, WIDTH / 2, 15)
+        self.draw_text("Health: " + str(self.health), 22, WHITE, WIDTH / 2, 40)
+        self.draw_text("Player: " + str(self.username), 22, WHITE, WIDTH / 2, 65)
         # *after* drawing everything, flip the display
         pg.display.flip()
 
