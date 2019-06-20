@@ -230,7 +230,7 @@ class Game:
 
     def run(self):
         # Game Loop
-        assert path.isfile(path.join(self.snd_dir, 'Rise_of_spirit.ogg')), 'file Rise_of_spirit.ogg does not exists'
+        assert path.isfile(path.join(self.snd_dir, 'Rise_of_spirit.ogg')), 'file Rise_of_spirit.ogg does not exist'
         pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
         pg.mixer.music.play(loops=-1)
         self.playing = True
