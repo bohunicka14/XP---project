@@ -209,12 +209,13 @@ class Platform(RigidObject):
 
 
 class Ground(pg.sprite.Sprite):
-    def __init__(self, game, w, h, x, y):
+    def __init__(self, game, w, h, x, y, is_floor = False):
         assert game is not None, 'Game instance is None!'
         assert type(x) in {int, float}, 'Wrong type of x arg'
         assert type(y) in {int, float}, 'Wrong type of y arg'
         assert type(w) in {int, float}, 'Wrong type of w arg'
         assert type(h) in {int, float}, 'Wrong type of h arg'
+
 
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -224,6 +225,8 @@ class Ground(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.is_floor = is_floor
+
 
 class Treat(pg.sprite.Sprite):
     def __init__(self, game, plat):

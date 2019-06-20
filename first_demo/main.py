@@ -208,7 +208,9 @@ class Game:
             assert type(plat[1]) in {int, float}, "Wrong type of platform coordinates"
             Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
 
-        p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40)
+        p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40, True)
+        left_wall = Ground(self, 50, HEIGHT, 0, 0)
+        right_wall = Ground(self, 50, HEIGHT, WIDTH*5, 0)
 
         self.run()
         pg.mixer.music.fadeout(500)
@@ -267,7 +269,7 @@ class Game:
                 lowest = hits[0]
                 is_obstacle = False
                 for hit in hits:
-                    if isinstance(hit, Obstacle):
+                    if isinstance(hit, Obstacle) or (isinstance(hit, Ground) and hit.is_floor == False):
                         is_obstacle = True
                         lowest = hit
                         break
