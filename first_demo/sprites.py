@@ -238,7 +238,7 @@ class Ground(pg.sprite.Sprite):
 
 class Finish(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = self.game.spritesheet_tiles.get_image(*FINISH_IMG_COORDS)

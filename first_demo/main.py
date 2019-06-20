@@ -194,7 +194,7 @@ class Game:
         self.treats = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
         self.player = Player(self)
-        self.finish = Finish(self, WIDTH*4, HEIGHT - 75)
+        self.finish = Finish(self, WIDTH*5 - 50, HEIGHT - 75)
         self.score = 0
 
         for plat in PLATFORM_LIST_LEVEL_1:
@@ -326,6 +326,9 @@ class Game:
             for enemy in self.enemies:
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     enemy.rect.x -= self.player.posun
+
+            # if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+            #     self.finish.rect.x -= self.player.posun
 
         # if player reaches 1/4 width of screen
         if self.player.rect.left <= WIDTH / 4:
