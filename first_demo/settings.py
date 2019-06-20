@@ -26,7 +26,6 @@ PLAYER_JUMP = 25
 
 # Enemy properties
 
-
 # Game properties
 TREAT_SPAWN = 50
 
