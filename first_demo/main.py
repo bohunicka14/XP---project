@@ -227,6 +227,15 @@ class Game:
 
         return visible_platforms
 
+    @property
+    def visible_enemies(self):
+        visible_enemies = pg.sprite.Group()
+        for enemy in self.enemies:
+            if enemy.rect.left <= WIDTH and enemy.rect.right >= 0:
+                visible_enemies.add(enemy)
+
+        return visible_enemies
+
 
     def run(self):
         # Game Loop
@@ -254,7 +263,7 @@ class Game:
             self.fps = 0
         #enemies collides PLAYER
         # print("self.enemies", self.enemies)
-        enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
+        enemy_hit = pg.sprite.spritecollide(self.player, self.visible_enemies, False)
         if enemy_hit and not self.wasenemyhit:
             if enemy_hit[0].rect.y - self.player.rect.y > 0 and enemy_hit[0].rect.y - self.player.rect.y < \
                     enemy_hit[0].rect.height/2 + self.player.rect.height/2:
