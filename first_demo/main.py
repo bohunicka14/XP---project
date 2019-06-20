@@ -68,8 +68,6 @@ class InputBox:
 
 class Game:
     def __init__(self):
-        self.display_width = 1280
-        self.display_height = 720
         pg.init()
         pg.mixer.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -83,12 +81,17 @@ class Game:
 
     def load_data(self):
         self.dir = path.dirname(__file__)
+        assert path.isfile(path.join(self.dir, HS_FILE)), 'file {} does not exists'.format(HS_FILE)
         with open(path.join(self.dir, HS_FILE), 'w') as f:
             try:
                 self.highscore = int(f.read())
             except:
                 self.highscore = 0
+
+        assert path.isdir(path.join(self.dir, 'SOUNDS')), 'such path does not exist'
         self.snd_dir = path.join(self.dir, 'SOUNDS')
+
+        assert path.isfile(path.join(self.snd_dir, 'Jump21.wav')), 'file Jump21.wav does not exists'
         self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
 
 
@@ -121,8 +124,8 @@ class Game:
                 assert 0 <= c <= 255, 'Color parameter out of range!'
 
         # display_width, display_height = pygame.display.get_surface().get_size()
-        # assert x <= display_width - w/2, 'Button is partly out of screen! Change coords.'
-        # assert y <= display_height - h / 2, 'Button is partly out of screen! Change coords.'
+        assert x <= WIDTH - w/2, 'Button is partly out of screen! Change coords.'
+        assert y <= HEIGHT - h / 2, 'Button is partly out of screen! Change coords.'
 
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
@@ -141,10 +144,11 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
+        assert path.isfile(path.join(self.snd_dir, 'Menu.ogg')), 'file menu.ogg does not exists'
         pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
         pg.mixer.music.play(loops=-1)
         intro = True
-        input_box = InputBox(self.display_width / 2, self.display_height / 2, 140, 32)
+        input_box = InputBox(WIDTH / 2, HEIGHT / 2, 140, 32)
 
         while intro:
             for event in pygame.event.get():
@@ -152,37 +156,33 @@ class Game:
                 self.username = input_box.handle_event(event)
                 if event.type == pygame.QUIT:
                     self.quit_game()
-                # elif event.type == VIDEORESIZE:
-                #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
-                #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
 
 
             self.screen.fill(WHITE)
-            #input_box = InputBox(display_width/2, display_height/2, 140, 32)
-            input_box.update(self.display_width/2, self.display_height/2)
+            input_box.update(WIDTH / 2, HEIGHT / 2)
             input_box.draw(self.screen)
 
             # super mario text
             largeText = pygame.font.Font('freesansbold.ttf', 115)
             TextSurf, TextRect = self.text_objects("Super cpt.Danko", largeText)
-            TextRect.center = ((self.display_width / 2), (self.display_height / 3))
+            TextRect.center = ((WIDTH / 2), (HEIGHT / 3))
             self.screen.blit(TextSurf, TextRect)
 
             # input box text
             smallText = pygame.font.Font('freesansbold.ttf', 20)
             TextSurf, TextRect = self.text_objects("Enter your name: ", smallText)
-            TextRect.center = ((self.display_width / 2 - 90), (self.display_height / 2) + 20)
+            TextRect.center = ((WIDTH / 2 - 90), (HEIGHT / 2) + 20)
             self.screen.blit(TextSurf, TextRect)
 
             if self.show_warning_empty_username:
                 assert self.username == '', 'Username should be empty!'
                 smallText = pygame.font.Font('freesansbold.ttf', 20)
                 TextSurf, TextRect = self.text_objects("You forgot to enter your name!!!", smallText, RED)
-                TextRect.center = ((self.display_width / 2 - 60), (self.display_height / 2) + 50)
+                TextRect.center = ((self.WIDTH / 2 - 60), (HEIGHT / 2) + 50)
                 self.screen.blit(TextSurf, TextRect)
 
-            self.button("GO!", self.display_width*1/4, self.display_height*2/3, 100, 50, GREEN, BRIGHT_GREEN, self.new)
-            self.button("Quit", self.display_width*3/4, self.display_height*2/3, 100, 50, RED, BRIGHT_RED, self.quit_game)
+            self.button("GO!", WIDTH * 1 / 4, HEIGHT * 2 / 3, 100, 50, GREEN, BRIGHT_GREEN, self.new)
+            self.button("Quit", WIDTH * 3 / 4, HEIGHT * 2 / 3, 100, 50, RED, BRIGHT_RED, self.quit_game)
 
             pygame.display.update()
 
@@ -199,6 +199,9 @@ class Game:
         self.player = Player(self)
 
         for plat in PLATFORM_LIST_LEVEL_1:
+            assert len(plat) == 2, "Platform coords are wrong. Check settings.py"
+            assert type(plat[0]) in {int, float}, "Wrong type of platform coordinates"
+            assert type(plat[1]) in {int, float}, "Wrong type of platform coordinates"
             Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
 
         p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40)
@@ -227,6 +230,7 @@ class Game:
 
     def run(self):
         # Game Loop
+        assert path.isfile(path.join(self.snd_dir, 'Rise_of_spirit.ogg')), 'file Rise_of_spirit.ogg does not exists'
         pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
         pg.mixer.music.play(loops=-1)
         self.playing = True
@@ -242,11 +246,13 @@ class Game:
     def update(self):
         # Game Loop - Update
         self.all_sprites.update()
+
         # spawn enemies
         self.fps += 1
         if self.fps > 180:
             Enemy(self)
             self.fps = 0
+
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.visible_platforms, False)
@@ -323,10 +329,10 @@ class Game:
                     enemy.rect.x += self.player.posun
 
         # spawn new platforms to keep same average number
-        while len(self.visible_platforms) < 8:
+        while len(self.visible_platforms) < 5:
             width = random.randrange(50, 100)
             Platform(self, WIDTH,
-                     random.randrange(50, HEIGHT -300), self.spritesheet_other, PLATFORM_IMG_COORDS)
+                     random.randrange(50, HEIGHT - 300), self.spritesheet_other, PLATFORM_IMG_COORDS)
             if random.randint(0, 1):
                 Obstacle(self, WIDTH, HEIGHT - 115, self.spritesheet_tiles, OBSTACLE_IMG_COORDS)
 
@@ -356,7 +362,7 @@ class Game:
 
     def game_loop(self):
         #object level background
-        levelbg = LevelBg(screen_height=self.display_height)
+        levelbg = LevelBg()
         self.spritesheet = Spritesheet(SPRITESHEET)
         self.player = Player(self)
         # enemy = Enemy(100, 588, 64, 64, 450)
@@ -369,11 +375,6 @@ class Game:
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         quit()
-                    # elif event.type == VIDEORESIZE:
-                    #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
-                    #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
-                    #     levelbg.rescale(self.display_height, self.display_width)
-                    #     self.screen.blit(pygame.transform.scale(levelbg.lvl_bg_img, (levelbg.bg_scale_w,levelbg.bg_scale_h)),(levelbg.mx,0))
 
                 # new game after intro
                 # COMMENT BIG see down -> 'line 248'
@@ -440,22 +441,19 @@ class Game:
 
 
 class LevelBg:
-    def __init__(self, lvl_bg_num='1-1', screen_height=720, screen_width=1280):
+    def __init__(self, lvl_bg_num='1-1'):
         self.lvl_bg_name = 'textures/World ' + lvl_bg_num + '.png'
         self.lvl_bg_img = None
         self.bg_width = 3392
         self.bg_height = 224
         self.bg_scale_w = 1
         self.bg_scale_h = 1
-        self.display_height = screen_height
-        self.display_width = screen_width
         self.mx = 0
 
         self.testrun = False
         #auto itself initialization
         self.load_img()
         self.crop_img()
-        self.rescale()
 
     def load_img(self):
         try:
@@ -473,95 +471,16 @@ class LevelBg:
             print('ERROR: BAD crop coordinates. Actual cor: left up x:{} y:{}, right down x:{} y:{}'.format(left_up_x,left_up_y,right_down_x,right_down_y))
         if self.testrun: print('Cropping img')
 
-    def rescale(self, screen_height=720, screen_width=1280):
-        self.display_height = screen_height
-        self.display_width = screen_width
-        self.bg_scale_w = int(self.display_height/self.bg_height*self.bg_width)
-        self.bg_scale_h = int(self.display_height/self.bg_height*self.bg_height)
-
-        if self.testrun: print('Rescale img')
-        if self.testrun: print(self.bg_scale_w)
 
     def move(self, x):
         #mx = 0 lavy okraj zarovnany
         #mx = - (self.bg_scale_w - self.display_width)
-        #treba doriesit centrovanie pri zmensovani zvacsovani okna
-        #a meniacu sa rzchlost pri Resizeovani okna
-        if self.mx <= - (self.bg_scale_w - self.display_width):
-            self.mx = - (self.bg_scale_w - self.display_width)
+        if self.mx <= - (self.bg_scale_w - WIDTH):
+            self.mx = - (self.bg_scale_w - WIDTH)
         else:
             self.mx += x
-        if self.testrun: print(self.mx, self.bg_scale_w - self.display_width)
+        if self.testrun: print(self.mx, self.bg_scale_w - WIDTH)
 
-
-# class Player:
-#     def __init__(self, x, y, width, height):
-#         self.x = x
-#         self.y = y
-#         self.width = width
-#         self.height = height
-#         self.vel = 5
-#         self.isJump = False
-#         self.left = False
-#         self.right = False
-#         self.walkCount = 0
-#         self.jumpCount = 10
-#         self.character = pygame.image.load('IMAGES/standing.png')
-#
-#     def draw(self, win):
-#         assert len(walkLeft) != 0, 'Zoznam obrazkov je prazdny'
-#         assert len(walkRight) != 0, 'Zoznam obrazkov je prazdny'
-#         if self.walkCount + 1 >= 27:
-#             self.walkCount = 0
-#
-#         if self.left:
-#             win.blit(walkLeft[self.walkCount // 3], (self.x, self.y))
-#             self.walkCount += 1
-#         elif self.right:
-#             win.blit(walkRight[self.walkCount // 3], (self.x, self.y))
-#             self.walkCount += 1
-#         else:
-#             win.blit(self.character, (self.x, self.y))
-#
-#
-# class Enemy:
-#     def __init__(self, x, y, width, height, end):
-#         self.x = x
-#         self.y = y
-#         self.width = width
-#         self.height = height
-#         self.end = end
-#         self.path = [self.x, self.end]
-#         self.walkCount = 0
-#         self.vel = 3
-#
-#     def draw(self, win):
-#         self.move()
-#         assert len(enemyWalkLeft) != 0, 'Zoznam obrazkov je prazdny'
-#         assert len(enemyWalkRight) != 0, 'Zoznam obrazkov je prazdny'
-#         if self.walkCount + 1 >= 33:
-#             self.walkCount = 0
-#
-#         if self.vel > 0:
-#             win.blit(enemyWalkRight[self.walkCount//3], (self.x, self.y))
-#             self.walkCount += 1
-#         else:
-#             win.blit(enemyWalkLeft[self.walkCount//3], (self.x, self.y))
-#             self.walkCount += 1
-#
-#     def move(self):
-#         if self.vel > 0:
-#             if self.x + self.vel < self.path[1]:
-#                 self.x += self.vel
-#             else:
-#                 self.vel = self.vel * -1
-#                 self.walkCount = 0
-#         else:
-#             if self.x - self.vel > self.path[0]:
-#                 self.x += self.vel
-#             else:
-#                 self.vel = self.vel * -1
-#                 self.walkCount = 0
 
 
 if __name__ == '__main__':
@@ -569,12 +488,3 @@ if __name__ == '__main__':
     game.game_intro()
 
 
-
-
-    #################### COMMENT BIG see down - this is him
-    # '''(this is idea) - call some game state handler
-    # if not created game -> level = 1
-    # else level += 1
-    # od state handlera sa nasledne odvodi ktore data sa maju nacitat
-    # level == 1 -> World 1-1.png atd....'''
-    ####################
