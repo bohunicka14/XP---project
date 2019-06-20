@@ -33,6 +33,8 @@ class Player(pg.sprite.Sprite):
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.posun = 5
+        self.health = 100
+        self.damage = 10
 
     def load_images(self):
         self.standing_frames = [self.game.spritesheet_player.get_image(67, 196, 66, 92),
@@ -110,54 +112,70 @@ class Player(pg.sprite.Sprite):
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self, game):
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites, game.enemies
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.current_frame = 0
         self.last_update = 0
+        self.enemytype = random.randint(1,2)
         self.load_images()
         self.actualframe = 0
         self.image = self.fly_frames[0]
         self.rect = self.image.get_rect()
-        self.rect.centerx = random.choice([-100, WIDTH/2])
+        self.rect.centerx = random.choice([-100, WIDTH+100])
         self.vxspeed = random.randrange(1, 4)
-        self.rect.centery = HEIGHT/2
+        if self.rect.centerx > WIDTH:
+            self.vxspeed *= -1
+        self.rect.centery = random.randrange(40, HEIGHT-40)
         self.vyspeed = 0
         self.dy = 0.5
         self.updatespeed = 0
-        self.updatediff = 8
+        self.updatediff = 5
+        self.animationdirection = -1 #-1 up, 1 down
 
 
     def load_images(self):
-        self.fly_frames = [self.game.spritesheet_other.get_image(382, 635, 174, 126),
-                           self.game.spritesheet_other.get_image(0, 1879, 206, 107),
-                           self.game.spritesheet_other.get_image(0, 1559, 216, 101),
-                           self.game.spritesheet_other.get_image(0, 1456, 216, 101),
-                           self.game.spritesheet_other.get_image(382, 510, 182, 123)]
+        if self.enemytype == 1:
+            self.fly_frames = [self.game.spritesheet_other.get_image(382, 635, 174, 126),
+                               self.game.spritesheet_other.get_image(0, 1879, 206, 107),
+                               self.game.spritesheet_other.get_image(0, 1559, 216, 101),
+                               self.game.spritesheet_other.get_image(0, 1456, 216, 101),
+                               self.game.spritesheet_other.get_image(382, 510, 182, 123)]
+        elif self.enemytype == 2:
+            self.fly_frames = [self.game.spritesheet_other.get_image(566, 510, 122, 139),
+                               self.game.spritesheet_other.get_image(568, 1534, 122, 135)]
         for frame in self.fly_frames:
             frame.set_colorkey(BLACK)
 
     def update(self):
         self.rect.x += self.vxspeed
         self.vyspeed += self.dy
-
         self.updatespeed += 1
+
         if self.updatespeed > self.updatediff:
             self.updatespeed = 0
+
             if self.vyspeed > 3 or self.vyspeed < -3:
                 self.dy *= -1
+
             if self.dy < 0:
-                if self.actualframe < len(self.fly_frames)-1:
-                    self.actualframe += 1
-                else:
-                    self.actualframe = 0
+                if self.animationdirection == -1:
+                    if self.actualframe < len(self.fly_frames)-1:
+                        self.actualframe += 1
+                    else:
+                        self.animationdirection = 1
             else:
                 if self.actualframe > 0:
                     self.actualframe -= 1
                 else:
-                    self.actualframe = len(self.fly_frames)-1
+                    self.animationdirection = -1
+
+
         self.image = self.fly_frames[self.actualframe]
         self.rect.y += self.vyspeed
+
+        if self.rect.left > WIDTH+100 or self.rect.left < -150:
+            self.kill()
 
 
 
@@ -180,11 +198,27 @@ class RigidObject(pg.sprite.Sprite):
 
 class Obstacle(RigidObject):
     def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        # self.groups = game.all_sprites, game.platforms
+        # pg.sprite.Sprite.__init__(self, self.groups)
+        # self.game = game
+        # self.image = self.game.spritesheet_tiles.get_image(*picture_coords)
+        # self.image.set_colorkey(BLACK)
+        # self.rect = self.image.get_rect()
+        # self.rect.x = x
+        # self.rect.y = y
         super().__init__(game, x, y, sprite_sheet, picture_coords)
 
 
 class Platform(RigidObject):
     def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        # self.groups = game.all_sprites, game.platforms
+        # pg.sprite.Sprite.__init__(self, self.groups)
+        # self.game = game
+        # self.image = sprite_sheet.get_image(*picture_coords)
+        # self.image.set_colorkey(BLACK)
+        # self.rect = self.image.get_rect()
+        # self.rect.x = x
+        # self.rect.y = y
         super().__init__(game, x, y, sprite_sheet, picture_coords)
         if random.randrange(100) < TREAT_SPAWN:
             Treat(self.game, self)
@@ -192,12 +226,6 @@ class Platform(RigidObject):
 
 class Ground(pg.sprite.Sprite):
     def __init__(self, game, w, h, x, y):
-        assert game is not None, 'Game instance is None!'
-        assert type(x) in {int, float}, 'Wrong type of x arg'
-        assert type(y) in {int, float}, 'Wrong type of y arg'
-        assert type(w) in {int, float}, 'Wrong type of w arg'
-        assert type(h) in {int, float}, 'Wrong type of h arg'
-
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -226,4 +254,3 @@ class Treat(pg.sprite.Sprite):
         self.rect.bottom = self.plat.rect.top - 5
         if not self.game.platforms.has(self.plat):
             self.kill()
-
