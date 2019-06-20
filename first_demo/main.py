@@ -6,6 +6,7 @@ from os import path
 
 import time
 import random
+import unittest
 
 
 class InputBox:
@@ -80,6 +81,7 @@ class Game:
         self.show_warning_empty_username = False
         self.load_data()
         self.lives, self.score = 0, 0
+        self.enemspawnsped = ENEMY_SPAWN_SPEED
 
     def load_data(self):
         self.dir = path.dirname(__file__)
@@ -231,7 +233,8 @@ class Game:
         pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
         pg.mixer.music.play(loops=-1)
         self.playing = True
-        self.fps = 0 # testing
+        self.spawntimer = 0
+        self.spawnt2 = 0
         self.wasenemyhit = False
         while self.playing:
             self.clock.tick(FPS)
@@ -245,17 +248,22 @@ class Game:
         # Game Loop - Update
         self.all_sprites.update()
         # spawn enemies
-        self.fps += 1
-        if self.fps > 180:
+        self.spawntimer += 1
+        if self.spawntimer > self.enemspawnsped:
             Enemy(self)
-            self.fps = 0
+            self.spawnt2 += self.spawntimer
+            self.spawntimer = 0
+            #speed up spawning
+            if self.spawnt2 > ENEMY_SPAWN_TIMER and self.enemspawnsped > 40:
+                self.enemspawnsped -= 10
+                self.spawnt2 = 0
+
         #enemies collides PLAYER
         # print("self.enemies", self.enemies)
         enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
         if enemy_hit and not self.wasenemyhit:
             self.player.health -= self.player.damage
             self.wasenemyhit = True
-            print("hitted enemy", self.player.health)
         else:
             if not enemy_hit:
                 self.wasenemyhit = False
@@ -514,8 +522,55 @@ class LevelBg:
 
 
 
+class Tester(unittest.TestCase):
+    # self.assertEqual(, )
+
+    def test_settings(self):
+        self.assertEqual(TITLE, "Super Space Cpt Dankis")
+        self.assertEqual(WIDTH, 1280)
+        self.assertEqual(HEIGHT, 600)
+        self.assertEqual(FPS, 60)
+
+        self.assertEqual(SPRITESHEET_PLAYER, "IMAGES/p1_spritesheet.png")
+        self.assertEqual(SPRITESHEET_ENEMY, "IMAGES/enemies_spritesheet.png")
+        self.assertEqual(SPRITESHEET_OTHER, "IMAGES/spritesheet_jumper.png")
+        self.assertEqual(SPRITESHEET_TILES, "IMAGES/tiles_spritesheet.png")
+        self.assertEqual(HS_FILE, "highscore.txt")
+
+        self.assertEqual(TREAT_IMG_COORDS, (244, 1981, 61, 61))
+        self.assertEqual(PLATFORM_IMG_COORDS, (0, 288, 380, 94))
+        self.assertEqual(OBSTACLE_IMG_COORDS, (864, 0, 48, 146))
+
+        self.assertEqual(PLAYER_ACC, 0.5)
+        self.assertEqual(PLAYER_FRICTION, -0.12)
+        self.assertEqual(PLAYER_GRAV, 0.8)
+        self.assertEqual(PLAYER_JUMP, 25)
+        self.assertEqual(TREAT_SPAWN, 50)
+
+        self.assertEqual(PLATFORM_LIST_LEVEL_1, [(0, HEIGHT - 40),(WIDTH / 2 - 50, HEIGHT * 3 / 4),(125, HEIGHT - 350),(350, 200),(175, 100)])
+        self.assertEqual(WHITE, (255, 255, 255))
+        self.assertEqual(BLACK, (0, 0, 0))
+        self.assertEqual(RED, (255, 0, 0))
+        self.assertEqual(GREEN, (0, 255, 0))
+        self.assertEqual(BLUE, (0, 0, 255))
+        self.assertEqual(YELLOW, (255, 255, 0))
+        self.assertEqual(LIGHTBLUE, (0, 155, 155))
+        self.assertEqual(BRIGHT_RED, (255, 0, 0))
+        self.assertEqual(BRIGHT_GREEN,  (0, 255, 0))
+
+        self.assertEqual(COLOR_INACTIVE, pygame.Color('lightskyblue3'))
+        self.assertEqual(COLOR_ACTIVE, pygame.Color('dodgerblue2'))
+        self.assertEqual(type(FONT), type(pygame.font.Font(None, 32)))
+
+    def test_inputbox(self):
+        # inputbox = InputBox()
+        pass
+
+
+
+
 if __name__ == '__main__':
     game = Game()
     game.game_intro()
 
-
+    # unittest.main(verbosity=2)
