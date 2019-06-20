@@ -393,7 +393,6 @@ class Game:
         levelbg = LevelBg(screen_height=self.display_height)
         self.spritesheet = Spritesheet(SPRITESHEET)
         self.player = Player(self)
-        # enemy = Enemy(100, 588, 64, 64, 450)
 
         if self.username:
             gameExit = False
