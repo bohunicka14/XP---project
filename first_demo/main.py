@@ -85,6 +85,7 @@ class Game:
         self.dir = path.dirname(__file__)
         self.snd_dir = path.join(self.dir, 'SOUNDS')
         self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
+        self.dmg_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Randomize37.wav'))
 
 
     def text_objects(self, text, font, color = BLACK):
@@ -136,6 +137,7 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
+        assert path.isfile(path.join(self.snd_dir, 'Menu.ogg')), 'file Menu.ogg does not exist'
         pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
         pg.mixer.music.play(loops=-1)
         intro = True
@@ -252,6 +254,7 @@ class Game:
         enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
         if enemy_hit and not self.wasenemyhit:
             self.player.health -= self.player.damage
+            self.dmg_sound.play()
             if self.player.health <= 0:
                 self.game_over_screen('lose')
             self.wasenemyhit = True
