@@ -206,6 +206,14 @@ class Game:
         self.run()
         pg.mixer.music.fadeout(500)
 
+    @property
+    def visible_enemies(self):
+        visible_enemies = pg.sprite.Group()
+        for enemy in self.enemies:
+            if enemy.rect.left <= WIDTH and enemy.rect.right >= 0:
+                visible_enemies.add(enemy)
+
+        return visible_enemies
 
     @property
     def visible_platforms(self):
@@ -287,9 +295,14 @@ class Game:
 
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     plat.rect.x -= self.player.posun
+
             for treat in self.treats:
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     treat.rect.x -= self.player.posun
+
+            for enemy in self.enemies:
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    enemy.rect.x -= self.player.posun
 
         # if player reaches 1/4 width of screen
         if self.player.rect.left <= WIDTH / 4:
@@ -304,6 +317,10 @@ class Game:
             for treat in self.treats:
                 if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
                     treat.rect.x += self.player.posun
+
+            for enemy in self.enemies:
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    enemy.rect.x += self.player.posun
 
         # spawn new platforms to keep same average number
         while len(self.visible_platforms) < 8:
