@@ -26,6 +26,8 @@ PLAYER_GRAV = 0.8
 PLAYER_JUMP = 25
 
 # Enemy properties
+ENEMY_SPAWN_SPEED = 100
+ENEMY_SPAWN_TIMER = 1000
 
 # Game properties
 TREAT_SPAWN = 50

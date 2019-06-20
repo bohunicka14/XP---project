@@ -112,6 +112,8 @@ class Player(pg.sprite.Sprite):
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self, game):
+        assert game is not None, 'Game instance is None!'
+
         self.groups = game.all_sprites, game.enemies
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
