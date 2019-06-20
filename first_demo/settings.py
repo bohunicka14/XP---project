@@ -16,6 +16,7 @@ HS_FILE = "highscore.txt"
 TREAT_IMG_COORDS = (244, 1981, 61, 61)
 PLATFORM_IMG_COORDS = (0, 288, 380, 94)
 OBSTACLE_IMG_COORDS = (864, 0, 48, 146)
+FINISH_IMG_COORDS = (288, 360, 70, 70)
 
 
 # Player properties

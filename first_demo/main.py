@@ -83,11 +83,6 @@ class Game:
 
     def load_data(self):
         self.dir = path.dirname(__file__)
-        with open(path.join(self.dir, HS_FILE), 'w') as f:
-            try:
-                self.highscore = int(f.read())
-            except:
-                self.highscore = 0
         self.snd_dir = path.join(self.dir, 'SOUNDS')
         self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
 
@@ -197,6 +192,8 @@ class Game:
         self.treats = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
         self.player = Player(self)
+        self.finish = Finish(self, WIDTH*4, HEIGHT - 75)
+        self.score = 0
 
         for plat in PLATFORM_LIST_LEVEL_1:
             Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
@@ -255,6 +252,8 @@ class Game:
         enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
         if enemy_hit and not self.wasenemyhit:
             self.player.health -= self.player.damage
+            if self.player.health <= 0:
+                self.game_over_screen('lose')
             self.wasenemyhit = True
             print("hitted enemy", self.player.health)
         else:
@@ -299,7 +298,12 @@ class Game:
         for t in treat_hits:
             if t.type == 'coin':
                 self.score += 1
-                # print(self.score)
+
+        # if player hits exit
+        col = pg.sprite.collide_rect(self.player, self.finish)
+        if col:
+            if self.score > 5:
+                self.game_over_screen('win')
 
         # if player reaches 3/4 width of screen
         if self.player.rect.right >= WIDTH - WIDTH / 4:
@@ -362,10 +366,36 @@ class Game:
                 if event.key == pg.K_UP:
                     self.player.jump_cut()
 
-    def game_over_screen(self):
-        # vypis dosiahnute skore a tabulku top 10 hracov z highscore.txt
-        # for cyklom prejde vrateny list a urobi draw_text
-        pass
+    def game_over_screen(self, result):
+        top_ten_list = self.make_top_ten_list(self.username, self.score)
+        if result == 'lose':
+            color = YELLOW
+            self.screen.fill(LIGHTBLUE)
+            self.draw_text("GAME OVER", 50, color, WIDTH / 2, HEIGHT / 4)
+        else:
+            color = LIGHTBLUE
+            self.screen.fill(YELLOW)
+            self.draw_text("YOU WON", 50, color, WIDTH / 2, HEIGHT / 4)
+        self.draw_text("Score: " + str(self.score), 40, color, WIDTH / 2, HEIGHT / 2 - 80)
+        for i in range(len(top_ten_list[:10])):
+            self.draw_text(str(i+1) + ". " + top_ten_list[i][0] + " " + str(top_ten_list[i][1]), 22, color, WIDTH / 2, HEIGHT / 2 + i * 25)
+        self.draw_text("Press space key to play again", 22, color, WIDTH / 2, HEIGHT - 40)
+        pg.display.flip()
+        self.wait_for_key()
+
+    def wait_for_key(self):
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.quit_game()
+                    waiting = False
+                    self.running = False
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_SPACE:
+                        self.new()
+                        waiting = False
 
     def draw_text(self, text, size, color, x, y):
         font = pg.font.Font('freesansbold.ttf', size)
@@ -375,8 +405,21 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def make_top_ten_list(self, player_name, player_score):
-        # otvori sa subor, zapise sa player_name s jeho skore, potom sa prejde subor a vrati sa top 10 hracov
-        pass
+        top_ten_list = []
+        data = str(player_name) + "-" + str(player_score)
+        self.dir = path.dirname(__file__)
+        with open(path.join(self.dir, HS_FILE), 'a') as fa:
+            fa.write(data + '\n')
+            fa.close()
+        with open(path.join(self.dir, HS_FILE), 'r') as fr:
+            for row in fr:
+                r = row.rstrip('\n').split('-')
+                top_ten_list.append((r[0], int(r[1])))
+        top_ten_list.sort(key=self.sortSecond, reverse=True)
+        return top_ten_list
+
+    def sortSecond(self, val):
+        return val[1]
 
     def draw(self):
         # Game Loop - draw

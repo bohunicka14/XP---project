@@ -235,6 +235,19 @@ class Ground(pg.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
+class Finish(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = self.game.spritesheet_tiles.get_image(*FINISH_IMG_COORDS)
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+
 class Treat(pg.sprite.Sprite):
     def __init__(self, game, plat):
         assert game is not None, 'Game instance is None!'
@@ -243,7 +256,7 @@ class Treat(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.plat = plat
-        self.type = random.choice(['coin']) # prida sa aj moznost ziskat zivot?
+        self.type = random.choice(['coin'])
         self.image = self.game.spritesheet_other.get_image(*TREAT_IMG_COORDS)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
