@@ -52,4 +52,3 @@ BRIGHT_GREEN = (0, 255, 0)
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 FONT = pygame.font.Font(None, 32)
-
