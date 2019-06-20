@@ -111,6 +111,11 @@ class Player(pg.sprite.Sprite):
 
 class RigidObject(pg.sprite.Sprite):
     def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        assert game is not None, 'Game instance is None!'
+        assert type(x) in {int, float}, 'Wrong type of x arg'
+        assert type(y) in {int, float}, 'Wrong type of y arg'
+        assert isinstance(sprite_sheet, Spritesheet), 'spritesheet arg is not Spritesheet instance'
+        assert len(picture_coords) == 4, 'wrong picture coord arg'
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -161,6 +166,8 @@ class Ground(pg.sprite.Sprite):
 
 class Treat(pg.sprite.Sprite):
     def __init__(self, game, plat):
+        assert game is not None, 'Game instance is None!'
+        assert plat is not None, 'Platform instance is None!'
         self.groups = game.all_sprites, game.treats
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game

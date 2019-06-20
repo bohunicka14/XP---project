@@ -14,7 +14,7 @@ class InputBox:
         assert type(y) in {int, float}, 'Y parameter has wrong type!'
         assert type(w) in {int, float}, 'W parameter has wrong type!'
         assert type(h) in {int, float}, 'H parameter has wrong type!'
-        assert type(text) == str, 'Text parameter has wron type!'
+        assert type(text) == str, 'Text parameter has wrong type!'
 
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -197,7 +197,7 @@ class Game:
         self.player = Player(self)
         # self.all_sprites.add(self.player)
         for plat in PLATFORM_LIST_LEVEL_1:
-            Platform(self, plat[0], plat[1], self.spritesheet_other, (0, 288, 380, 94))
+            Platform(self, plat[0], plat[1], self.spritesheet_other, PLATFORM_IMG_COORDS)
 
         p = Ground(self, WIDTH*5, 70, 0, HEIGHT - 40)
 
