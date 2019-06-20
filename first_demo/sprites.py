@@ -161,30 +161,72 @@ class Enemy(pg.sprite.Sprite):
 
 
 
-
-
-class Platform(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
+class RigidObject(pg.sprite.Sprite):
+    def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        assert game is not None, 'Game instance is None!'
+        assert type(x) in {int, float}, 'Wrong type of x arg'
+        assert type(y) in {int, float}, 'Wrong type of y arg'
+        assert isinstance(sprite_sheet, Spritesheet), 'spritesheet arg is not Spritesheet instance'
+        assert len(picture_coords) == 4, 'wrong picture coord arg'
         self.groups = game.all_sprites, game.platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.game.spritesheet_other.get_image(0, 288, 380, 94)
+        self.image = sprite_sheet.get_image(*picture_coords)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Obstacle(RigidObject):
+    def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        # self.groups = game.all_sprites, game.platforms
+        # pg.sprite.Sprite.__init__(self, self.groups)
+        # self.game = game
+        # self.image = self.game.spritesheet_tiles.get_image(*picture_coords)
+        # self.image.set_colorkey(BLACK)
+        # self.rect = self.image.get_rect()
+        # self.rect.x = x
+        # self.rect.y = y
+        super().__init__(game, x, y, sprite_sheet, picture_coords)
+
+
+class Platform(RigidObject):
+    def __init__(self, game, x, y, sprite_sheet, picture_coords):
+        # self.groups = game.all_sprites, game.platforms
+        # pg.sprite.Sprite.__init__(self, self.groups)
+        # self.game = game
+        # self.image = sprite_sheet.get_image(*picture_coords)
+        # self.image.set_colorkey(BLACK)
+        # self.rect = self.image.get_rect()
+        # self.rect.x = x
+        # self.rect.y = y
+        super().__init__(game, x, y, sprite_sheet, picture_coords)
         if random.randrange(100) < TREAT_SPAWN:
             Treat(self.game, self)
 
 
+class Ground(pg.sprite.Sprite):
+    def __init__(self, game, w, h, x, y):
+        self.groups = game.all_sprites, game.platforms
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((w, h))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 class Treat(pg.sprite.Sprite):
     def __init__(self, game, plat):
+        assert game is not None, 'Game instance is None!'
+        assert plat is not None, 'Platform instance is None!'
         self.groups = game.all_sprites, game.treats
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.plat = plat
         self.type = random.choice(['coin']) # prida sa aj moznost ziskat zivot?
-        self.image = self.game.spritesheet_other.get_image(244, 1981, 61, 61)
+        self.image = self.game.spritesheet_other.get_image(*TREAT_IMG_COORDS)
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.centerx = self.plat.rect.centerx
@@ -194,14 +236,4 @@ class Treat(pg.sprite.Sprite):
         self.rect.bottom = self.plat.rect.top - 5
         if not self.game.platforms.has(self.plat):
             self.kill()
-
-
-class Ground(pg.sprite.Sprite):
-    def __init__(self, w, h, x, y):
-        pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((w, h))
-        self.image.fill(RED)
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
 
