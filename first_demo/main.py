@@ -1,7 +1,9 @@
-import pygame
-from pygame.locals import *
 from settings import *
 from sprites import *
+import pygame as pg
+from settings import *
+from sprites import *
+from os import path
 
 import time
 import random
@@ -77,6 +79,19 @@ class Game:
         self.running = True
         self.username = ''
         self.show_warning_empty_username = False
+        self.load_data()
+        self.lives, self.score = 0, 0
+
+    def load_data(self):
+        self.dir = path.dirname(__file__)
+        with open(path.join(self.dir, HS_FILE), 'w') as f:
+            try:
+                self.highscore = int(f.read())
+            except:
+                self.highscore = 0
+        self.snd_dir = path.join(self.dir, 'SOUNDS')
+        self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump21.wav'))
+
 
     def text_objects(self, text, font, color = BLACK):
         assert type(text) == str, 'Text parameter should be the str type!'
@@ -127,6 +142,8 @@ class Game:
         self.screen.blit(textSurf, textRect)
 
     def game_intro(self):
+        pg.mixer.music.load(path.join(self.snd_dir, 'Menu.ogg'))
+        pg.mixer.music.play(loops=-1)
         intro = True
         input_box = InputBox(self.display_width / 2, self.display_height / 2, 140, 32)
 
@@ -135,8 +152,7 @@ class Game:
                 # print(event)
                 self.username = input_box.handle_event(event)
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+                    self.quit_game()
                 # elif event.type == VIDEORESIZE:
                 #     self.screen = pygame.display.set_mode(event.dict['size'], HWSURFACE | DOUBLEBUF | RESIZABLE)
                 #     self.display_width, self.display_height = pygame.display.get_surface().get_size()
@@ -178,41 +194,78 @@ class Game:
         self.spritesheet_other = Spritesheet(SPRITESHEET_OTHER)
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
+        self.treats = pg.sprite.Group()
+        self.enemies = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
-        for plat in PLATFORM_LIST:
-            p = Platform(self, *plat)
-            self.all_sprites.add(p)
-            self.platforms.add(p)
+        for plat in PLATFORM_LIST_LEVEL_1:
+            Platform(self, plat[0], plat[1])
+
+        p = Ground(WIDTH*5, 70, 0, HEIGHT - 40)
+        self.all_sprites.add(p)
+        self.platforms.add(p)
+
         self.run()
+        pg.mixer.music.fadeout(500)
 
     def run(self):
         # Game Loop
+        pg.mixer.music.load(path.join(self.snd_dir, 'Rise_of_spirit.ogg'))
+        pg.mixer.music.play(loops=-1)
         self.playing = True
+        self.fps = 0 # testing
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        # fadeout of music after ending of game
+        # pg.mixer.music.fadeout(500)
 
     def update(self):
         # Game Loop - Update
         self.all_sprites.update()
+        # spawn enemies
+        self.fps += 1
+        if self.fps > 180:
+            Enemy(self)
+            self.fps = 0
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.platforms, False)
             if hits:
-                self.player.pos.y = hits[0].rect.top
-                self.player.vel.y = 0
+                lowest = hits[0]
+                for hit in hits:
+                    if hit.rect.bottom > lowest.rect.bottom:
+                        lowest = hit
+                if self.player.pos.x < lowest.rect.right + 10 and \
+                        self.player.pos.x > lowest.rect.left - 10:
+                    if self.player.pos.y < lowest.rect.bottom:
+                        self.player.pos.y = lowest.rect.top
+                        self.player.vel.y = 0
+                        self.player.jumping = False
+        # if player hits coin
+        treat_hits = pg.sprite.spritecollide(self.player, self.treats, True)
+        for t in treat_hits:
+            if t.type == 'coin':
+                self.score += 1
+                print(self.score)
+
         # if player reaches top 1/4 of screen
-        if self.player.rect.right >= (WIDTH) - WIDTH / 4:
+        if self.player.rect.right >= WIDTH - WIDTH / 4:
             self.player.pos.x -= abs(self.player.vel.x)
             for plat in self.platforms:
-                plat.rect.x -= abs(self.player.vel.x)
+                # plat.rect.x -= abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x -= self.player.posun
         if self.player.rect.left <= WIDTH / 4:
             self.player.pos.x += abs(self.player.vel.x)
             for plat in self.platforms:
-                plat.rect.x += abs(self.player.vel.x)
+                # plat.rect.x += abs(self.player.vel.x)
+                # print(self.player.vel)
+                if (round(self.player.vel[0]), round(self.player.vel[1])) != (0, 0):
+                    plat.rect.x += self.player.posun
 
 
         # spawn new platforms to keep same average number
@@ -232,9 +285,13 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.quit_game()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
                     self.player.jump()
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_UP:
+                    self.player.jump_cut()
 
     def draw(self):
         # Game Loop - draw
@@ -242,6 +299,7 @@ class Game:
         self.all_sprites.draw(self.screen)
         # *after* drawing everything, flip the display
         pg.display.flip()
+
 
     def game_loop(self):
         #object level background
