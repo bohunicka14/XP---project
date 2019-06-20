@@ -253,9 +253,14 @@ class Game:
         # print("self.enemies", self.enemies)
         enemy_hit = pg.sprite.spritecollide(self.player, self.enemies, False)
         if enemy_hit and not self.wasenemyhit:
-            self.player.health -= self.player.damage
-            self.wasenemyhit = True
-            print("hitted enemy", self.player.health)
+            if enemy_hit[0].rect.y - self.player.rect.y > 0 and enemy_hit[0].rect.y - self.player.rect.y < \
+                    enemy_hit[0].rect.height/2 + self.player.rect.height/2:
+                # player jumped on top of enemy
+                enemy_hit[0].kill()
+            else:
+                self.player.health -= self.player.damage
+                self.wasenemyhit = True
+                # print("hitted enemy", self.player.health)
         else:
             if not enemy_hit:
                 self.wasenemyhit = False
@@ -277,13 +282,14 @@ class Game:
                         lowest = hit
 
                 if is_obstacle:
+                    self.player.vel.x = 0
                     # collision from right side of obstacle
                     if self.player.pos.x >= lowest.rect.x:
                         self.player.pos.x = lowest.rect.right + self.player.rect.width / 2 + 1
                     # collision from left side of obstacle
                     elif self.player.pos.x <= lowest.rect.x:
                         self.player.pos.x = lowest.rect.left - self.player.rect.width / 2 - 1
-                    self.player.vel.x = 0
+
 
                 else:
                     if self.player.pos.x < lowest.rect.right + 10 and \
