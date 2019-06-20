@@ -82,7 +82,9 @@ class Game:
         self.lives, self.score = 0, 0
         self.enemspawnsped = ENEMY_SPAWN_SPEED
 
+
         self.lvl_bg_name = 'IMAGES/background.png'
+        assert path.isfile(self.lvl_bg_name), 'file {} does not exist'.format(self.lvl_bg_name)
         self.lvl_bg_img = pygame.image.load(self.lvl_bg_name).convert()
         self.screen.blit(self.lvl_bg_img, (0, 0))
 
@@ -90,13 +92,6 @@ class Game:
 
     def load_data(self):
         self.dir = path.dirname(__file__)
-        assert path.isfile(path.join(self.dir, HS_FILE)), 'file {} does not exist'.format(HS_FILE)
-        with open(path.join(self.dir, HS_FILE), 'w') as f:
-            try:
-                self.highscore = int(f.read())
-            except:
-                self.highscore = 0
-
         assert path.isdir(path.join(self.dir, 'SOUNDS')), 'dir SOUNDS does not exist'
         self.snd_dir = path.join(self.dir, 'SOUNDS')
 
@@ -133,9 +128,6 @@ class Game:
                 assert type(c) in {int, float}, 'Wrong color type!'
                 assert 0 <= c <= 255, 'Color parameter out of range!'
 
-        # display_width, display_height = pygame.display.get_surface().get_size()
-        # assert x <= display_width - w/2, 'Button is partly out of screen! Change coords.'
-        # assert y <= display_height - h / 2, 'Button is partly out of screen! Change coords.'
 
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
@@ -201,6 +193,7 @@ class Game:
             pygame.display.update()
 
     def new(self):
+        assert self.username != '', 'username is not defined'
         # start a new game
         self.spritesheet_player = Spritesheet(SPRITESHEET_PLAYER)
         self.spritesheet_enemy = Spritesheet(SPRITESHEET_ENEMY)
@@ -256,6 +249,7 @@ class Game:
         self.spawntimer = 0
         self.spawnt2 = 0
         self.wasenemyhit = False
+
         while self.playing:
             self.clock.tick(FPS)
             self.events()
@@ -270,6 +264,9 @@ class Game:
 
         # spawn enemies
         self.spawntimer += 1
+
+        assert type(self.enemspawnsped) == int, 'wrong self.enemspawnsped type'
+        assert type(self.spawntimer) == int, 'wrong self.spawntimer type'
         if self.spawntimer > self.enemspawnsped:
             Enemy(self)
             self.spawnt2 += self.spawntimer
@@ -300,8 +297,7 @@ class Game:
         else:
             if not enemy_hit:
                 self.wasenemyhit = False
-        # if spritecollide(self.player, self.enemies)
-        # print("was enemy hit", self.wasenemyhit)
+
 
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
@@ -389,7 +385,6 @@ class Game:
 
         # spawn new platforms to keep same average number
         while len(self.visible_platforms) < 5:
-            width = random.randrange(50, 100)
             Platform(self, WIDTH,
                      random.randrange(50, HEIGHT - 300), self.spritesheet_other, PLATFORM_IMG_COORDS)
             if random.randint(0, 1):
@@ -412,6 +407,7 @@ class Game:
                     self.player.jump_cut()
 
     def game_over_screen(self, result):
+        assert type(result) is str, 'wrong param type'
         top_ten_list = self.make_top_ten_list(self.username, self.score)
         if result == 'lose':
             color = YELLOW
@@ -443,6 +439,13 @@ class Game:
                         waiting = False
 
     def draw_text(self, text, size, color, x, y):
+        assert type(text) is str, 'wrong text param type'
+        assert type(size) is int, 'wrong size param type'
+        assert type(color) is tuple, 'wrong color param type'
+        assert type(x) in (int, float), 'wrong x param type'
+        assert type(y) in (int, float), 'wrong y param type'
+
+
         font = pg.font.Font('freesansbold.ttf', size)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
@@ -453,9 +456,13 @@ class Game:
         top_ten_list = []
         data = str(player_name) + "-" + str(player_score)
         self.dir = path.dirname(__file__)
+        assert path.isfile(path.join(self.dir, HS_FILE)), 'file [] does not exist'.format(HS_FILE)
+
         with open(path.join(self.dir, HS_FILE), 'a') as fa:
             fa.write(data + '\n')
             fa.close()
+
+
         with open(path.join(self.dir, HS_FILE), 'r') as fr:
             for row in fr:
                 r = row.rstrip('\n').split('-')
@@ -473,6 +480,10 @@ class Game:
         self.screen.blit(self.lvl_bg_img, (0, 0))
 
         self.all_sprites.draw(self.screen)
+
+        assert type(self.score) is int, 'score is wrong type'
+        assert type(self.player.health) is int, 'player.health is wrong type'
+        assert type(self.username) is str, 'username is wrong type'
 
         self.draw_text("Coins: " + str(self.score), 22, WHITE, WIDTH / 2, 15)
         self.draw_text("Health: " + str(self.player.health), 22, WHITE, WIDTH / 2, 40)
